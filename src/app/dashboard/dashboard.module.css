@@ -1,0 +1,185 @@
+.page {
+    padding: var(--space-8);
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.header {
+    margin-bottom: var(--space-8);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-1);
+}
+
+.subtitle {
+    color: var(--text-2);
+}
+
+/* Bento Grid */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, minmax(200px, auto));
+    gap: var(--space-6);
+}
+
+/* Grid Areas (Mobile first approach needs media queries, keeping simple for now) */
+.card {
+    background: white;
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid rgba(0, 0, 0, 0.02);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.welcomeCard {
+    grid-column: span 2;
+    background: linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%);
+    color: white;
+}
+
+.welcomeTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+}
+
+.welcomeText {
+    opacity: 0.9;
+}
+
+.actionCard {
+    grid-column: span 1;
+    background: var(--surface-1);
+    border: 2px dashed #e5e7eb;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.actionCard:hover {
+    border-color: var(--primary);
+    background: white;
+}
+
+.statCard {
+    grid-column: span 1;
+}
+
+.statValue {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-1);
+}
+
+.statLabel {
+    color: var(--text-2);
+    font-size: 0.875rem;
+}
+
+.threadListCard {
+    grid-column: span 4;
+    min-height: 400px;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-4);
+}
+
+.sectionTitle {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* Thread List Table */
+.table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.th {
+    text-align: left;
+    padding: var(--space-3);
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-2);
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.td {
+    padding: var(--space-4) var(--space-3);
+    font-size: 0.925rem;
+    color: var(--text-1);
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.statusDot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.status-active {
+    background-color: var(--success);
+}
+
+.status-creating {
+    background-color: var(--warning);
+}
+
+.status-archived {
+    background-color: var(--text-2);
+}
+
+.link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link:hover {
+    text-decoration: underline;
+}
+
+/* Create Modal (Simple Toggle) */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 50;
+    backdrop-filter: blur(4px);
+}
+
+.modal {
+    background: white;
+    padding: var(--space-8);
+    border-radius: var(--radius-xl);
+    width: 100%;
+    max-width: 500px;
+    box-shadow: var(--shadow-lg);
+}

@@ -1,0 +1,77 @@
+.container {
+    max-width: 64rem;
+    margin: 0 auto;
+    padding: var(--space-8);
+}
+
+.header {
+    margin-bottom: var(--space-6);
+}
+
+.title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--text-1);
+}
+
+.list {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.item {
+    padding: var(--space-4) var(--space-6);
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item:last-child {
+    border-bottom: none;
+}
+
+.userInfo {
+    flex: 1;
+}
+
+.email {
+    font-size: 1rem;
+    font-weight: 500;
+    color: var(--text-1);
+}
+
+.meta {
+    font-size: 0.875rem;
+    color: var(--text-2);
+    margin-top: 4px;
+}
+
+.actions {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.approveBtn {
+    padding: 4px 12px;
+    font-size: 0.875rem;
+    border-radius: var(--radius-md);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btnUser {
+    background-color: var(--success);
+}
+
+.btnAdmin {
+    background-color: var(--primary);
+}
+
+.approveBtn:hover {
+    opacity: 0.9;
+}
