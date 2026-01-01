@@ -1,7 +1,9 @@
 "use client";
 
+
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
+import UnifiedHeader from "@/components/UnifiedHeader";
 import { updateProfile } from "@/app/actions/user";
 
 export default function SettingsPage() {
@@ -46,7 +48,11 @@ export default function SettingsPage() {
 
     return (
         <div className="max-w-2xl mx-auto py-12 px-4">
-            <h1 className="text-3xl font-bold text-white mb-8">設定</h1>
+             <UnifiedHeader 
+                title="設定"
+                user={{ ...session.user, name: session.user.name || "User" }}
+                className="mb-8"
+            />
             
             <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-6 space-y-8">
                 {/* Profile Section */}

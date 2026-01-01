@@ -1,12 +1,14 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Task } from "@/types";
+import Link from "next/link";
+import UnifiedHeader from "@/components/UnifiedHeader";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, isToday, getDay, startOfDay, endOfDay, startOfWeek, endOfWeek } from "date-fns";
 import { ja } from "date-fns/locale";
-import { AlertCircle, CalendarDays, Pin, CheckSquare, Link, Copy, ChevronLeft, ChevronRight } from "lucide-react";
+import { AlertCircle, CalendarDays, Pin, CheckSquare, Link as LinkIcon, Copy, ChevronLeft, ChevronRight } from "lucide-react";
 import TaskDetailModal from "./TaskDetailModal";
 import { calculateCalendarLayout } from "./layoutUtils";
+import { Task } from "@/types";
 
 type CalendarTask = Task & { threadTitle: string; isExternal?: boolean };
 
@@ -116,71 +118,38 @@ export default function CalendarClient({ internalTasks, externalTasks, userId, u
     return (
         <div className="flex flex-col h-full bg-[#050510]">
             {/* Header */}
-            <header className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-black/20 backdrop-blur-md">
-                <div className="flex items-center gap-6">
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">
-                        タスクカレンダー
-                    </h1>
-                    
-                    <div className="flex items-center gap-3">
-                        {/* Type Filter */}
-                        <div className="flex bg-zinc-900 rounded-lg p-1 border border-white/5">
-                            <button 
-                                onClick={() => setFilter('assigned')}
-                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'assigned' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
-                            >
-                                自分のタスク
-                            </button>
-                            <button 
-                                onClick={() => setFilter('all')}
-                                 className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'all' ? 'bg-indigo-600 text-white' : 'text-zinc-400 hover:text-zinc-200'}`}
-                            >
-                                すべてのタスク
-                            </button>
-                        </div>
-
-                        {/* External Calendar Toggle */}
+            <UnifiedHeader 
+                title="タスクカレンダー"
+                className="px-6 py-2 border-b border-white/5 bg-black/20 backdrop-blur-md !mb-0"
+                leftChildren={
+                    <div className="flex items-center gap-2 bg-zinc-900/50 p-1 rounded-lg border border-white/5">
                         <button 
-                            onClick={() => setShowExternal(!showExternal)}
-                            className={`
-                                flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all
-                                ${showExternal 
-                                    ? 'bg-slate-600/20 border-slate-500/50 text-slate-200' 
-                                    : 'bg-zinc-900 border-white/5 text-zinc-500 hover:text-zinc-300'}
-                            `}
+                            onClick={() => setFilter('all')}
+                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'all' ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
                         >
-                            <div className={`w-3 h-3 rounded border flex items-center justify-center ${showExternal ? 'bg-slate-500 border-transparent' : 'border-zinc-500'}`}>
-                                {showExternal && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
-                            </div>
-                            高校予定表
+                            全体
                         </button>
-
-                        {/* Export/Share Button */}
-                         <button 
-                            onClick={handleCopyExportUrl}
-                            className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-indigo-500/30 bg-indigo-500/10 text-indigo-300 text-xs font-bold hover:bg-indigo-500/20 transition-all"
-                            title="iCalフィードURLをコピー"
+                        <button 
+                            onClick={() => setFilter('assigned')}
+                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'assigned' ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
                         >
-                            <Link size={14} />
-                            共有
+                            自分のタスク
                         </button>
                     </div>
+                }
+            >
+                <button onClick={goToToday} className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">今日</button>
+                <div className="flex items-center gap-2 bg-zinc-900 rounded-lg p-1 border border-white/5">
+                    <button onClick={prevMonth} className="h-8 w-8 flex items-center justify-center hover:bg-white/5 rounded text-zinc-400"><ChevronLeft size={20} /></button>
+                    <span className="px-3 font-bold min-w-[140px] text-center">
+                        {format(currentDate, 'yyyy年 MMMM', { locale: ja })}
+                    </span>
+                    <button onClick={nextMonth} className="h-8 w-8 flex items-center justify-center hover:bg-white/5 rounded text-zinc-400"><ChevronRight size={20} /></button>
                 </div>
-
-                <div className="flex items-center gap-4">
-                    <button onClick={goToToday} className="text-sm font-medium text-zinc-400 hover:text-white transition-colors">今日</button>
-                    <div className="flex items-center gap-2 bg-zinc-900 rounded-lg p-1 border border-white/5">
-                        <button onClick={prevMonth} className="h-8 w-8 flex items-center justify-center hover:bg-white/5 rounded text-zinc-400"><ChevronLeft size={20} /></button>
-                        <span className="px-3 font-bold min-w-[140px] text-center">
-                            {format(currentDate, 'yyyy年 MMMM', { locale: ja })}
-                        </span>
-                         <button onClick={nextMonth} className="h-8 w-8 flex items-center justify-center hover:bg-white/5 rounded text-zinc-400"><ChevronRight size={20} /></button>
-                    </div>
-                </div>
-            </header>
+            </UnifiedHeader>
 
             {/* Calendar Grid */}
-            <div className="flex-1 p-8 overflow-hidden flex flex-col">
+            <div className="flex-1 p-4 overflow-hidden flex flex-col">
                 {/* Days Header */}
                 <div className="grid grid-cols-7 gap-px bg-zinc-800/50 border border-white/5 rounded-t-2xl overflow-hidden">
                     {['日', '月', '火', '水', '木', '金', '土'].map((day, i) => (

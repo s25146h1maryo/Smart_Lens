@@ -11,7 +11,7 @@ import {
     Search, Filter, Calendar, AlertCircle, CheckCircle2, 
     Clock, BarChart3, UserCheck, Plus, X, ChevronRight,
     LayoutList, Kanban, SlidersHorizontal, ArrowUpDown, Layers,
-    Briefcase, ChevronDown, Sparkles, User, Check, Paperclip, FileIcon
+    Briefcase, ChevronDown, Sparkles, User, Check, Paperclip, FileIcon, Loader2
 } from "lucide-react";
 import EditTaskModal from "@/app/components/EditTaskModal";
 import CalendarView from "./components/CalendarView";
@@ -19,6 +19,7 @@ import BoardView from "./components/BoardView";
 import ReportModal from "./components/ReportModal";
 import InsightsView from "./components/InsightsView";
 import { useChatUpload } from "@/app/messages/ChatUploadContext";
+import UnifiedHeader from "@/components/UnifiedHeader";
 
 interface GlobalTodoClientProps {
     initialTasks: TaskWithThread[];
@@ -95,10 +96,10 @@ export default function GlobalTodoClient({
     // Cannot simple use useRef inside loop/conditional easily, but here it's top level component.
     // However, we only need one reference as only one add modal is open.
     // But we need to define it at top level.
+    // But we need to define it at top level.
+    // But we need to define it at top level.
     const fileInputRef = useRef<HTMLInputElement>(null);
-    // Actually, useRef is better.
-    // But I cannot add useRef in replace_file_content easily if I don't see the top.
-    // I will add it here.
+    const [newTaskUploadingCount, setNewTaskUploadingCount] = useState(0);
     
     // Re-declare to fix previous line comments which are not valid JS
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -350,12 +351,16 @@ export default function GlobalTodoClient({
             return;
         }
 
-        Array.from(files).forEach(file => {
+        const fileArray = Array.from(files);
+        setNewTaskUploadingCount(prev => prev + fileArray.length);
+
+        fileArray.forEach(file => {
             uploadFile(
                 file,
                 { threadId: newTaskThread },
                 (attachment) => {
                     setNewTaskAttachments(prev => [...prev, attachment]);
+                    setNewTaskUploadingCount(prev => Math.max(0, prev - 1));
                 }
             );
         });
@@ -499,16 +504,13 @@ export default function GlobalTodoClient({
             <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/20">
                 <div className="max-w-[1800px] mx-auto">
                     
-                    {/* Top Row: Title, View Switcher, Global Actions */}
-                    <div className="px-6 h-16 flex items-center justify-between">
-                        <div className="flex items-center gap-8">
-                            {/* Standardized Title Style (non-italic) */}
-                            <h1 className="text-xl font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                                Global Todo
-                            </h1>
-                            
-                            {/* View Switcher - Japanese */}
-                            <div className="hidden md:flex bg-zinc-900/50 p-1 rounded-xl border border-white/10">
+                    <UnifiedHeader
+                        title="Global Todo"
+                        className="px-6 py-2 !mb-0"
+                        user={currentUser}
+                        leftChildren={
+                            /* View Switcher - Japanese */
+                            <div className="hidden md:flex bg-zinc-900/50 p-1 rounded-xl border border-white/10 ml-4">
                                 {(['list', 'board', 'calendar', 'workload', 'insights'] as const).map(mode => (
                                     <button
                                         key={mode}
@@ -532,46 +534,45 @@ export default function GlobalTodoClient({
                                     </button>
                                 ))}
                             </div>
+                        }
+                    >
+                         {/* Right Actions */}
+                         {/* Availability Check Button */}
+                         <button
+                            onClick={() => setShowAvailabilityPanel(!showAvailabilityPanel)}
+                            className={`p-2 rounded-full transition-all border ${showAvailabilityPanel ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'bg-zinc-900/50 border-white/5 text-zinc-400 hover:text-white'}`}
+                            title="空き状況確認"
+                        >
+                            <UserCheck size={18} />
+                        </button>
+
+                        {/* Search */}
+                        <div className="group relative hidden sm:block">
+                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                            <input
+                                type="text"
+                                placeholder="タスク検索..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="w-64 pl-11 pr-4 py-2 bg-black/20 border border-white/10 rounded-full text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:bg-zinc-900 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                            />
                         </div>
 
-                        <div className="flex items-center gap-4">
-                            {/* Availability Check Button (Restored) */}
-                             <button
-                                onClick={() => setShowAvailabilityPanel(!showAvailabilityPanel)}
-                                className={`p-2 rounded-full transition-all border ${showAvailabilityPanel ? 'bg-indigo-500/10 border-indigo-500/30 text-indigo-400' : 'bg-zinc-900/50 border-white/5 text-zinc-400 hover:text-white'}`}
-                                title="空き状況確認"
-                            >
-                                <UserCheck size={18} />
-                            </button>
-
-                            {/* Search */}
-                            <div className="group relative hidden sm:block">
-                                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                                <input
-                                    type="text"
-                                    placeholder="タスク検索..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    className="w-64 pl-11 pr-4 py-2 bg-black/20 border border-white/10 rounded-full text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:bg-zinc-900 focus:ring-1 focus:ring-indigo-500/50 transition-all"
-                                />
-                            </div>
-
-                            <button
-                                onClick={() => setIsReportModalOpen(true)}
-                                className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-xs font-bold hover:bg-amber-500/20 transition-all"
-                            >
-                                <Sparkles size={16} />
-                                <span className="hidden lg:inline">AI Report</span>
-                            </button>
-                            
-                            <button
-                                onClick={() => setShowAddTask(true)}
-                                className="bg-white text-black p-2 rounded-full shadow-lg hover:bg-zinc-200 transition-all"
-                            >
-                                <Plus size={20} strokeWidth={3} />
-                            </button>
-                        </div>
-                    </div>
+                        <button
+                            onClick={() => setIsReportModalOpen(true)}
+                            className="flex items-center gap-2 px-3 py-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-lg text-xs font-bold hover:bg-amber-500/20 transition-all"
+                        >
+                            <Sparkles size={16} />
+                            <span className="hidden lg:inline">AI Report</span>
+                        </button>
+                        
+                        <button
+                            onClick={() => setShowAddTask(true)}
+                            className="bg-white text-black p-2 rounded-full shadow-lg hover:bg-zinc-200 transition-all"
+                        >
+                            <Plus size={20} strokeWidth={3} />
+                        </button>
+                    </UnifiedHeader>
 
                     {/* Filter Bar (Hidden on Insights) */}
                     {viewMode !== 'insights' ? (
@@ -1119,7 +1120,7 @@ export default function GlobalTodoClient({
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                         {newTaskAttachments.map((file, idx) => (
                                             <div key={idx} className="flex items-center justify-between p-2 rounded-lg bg-zinc-900/50 border border-white/5 group hover:border-white/10 transition-all">
-                                                <div className="flex items-center gap-2 overflow-hidden">
+                                                <a href={file.webViewLink || file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 overflow-hidden flex-1 min-w-0">
                                                     <div className="w-8 h-8 rounded bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
                                                         <FileIcon size={14} />
                                                     </div>
@@ -1127,7 +1128,7 @@ export default function GlobalTodoClient({
                                                         <span className="text-xs text-zinc-200 font-medium truncate max-w-[120px]" title={file.name}>{file.name}</span>
                                                         <span className="text-[10px] text-zinc-500">{Math.round(file.size / 1024)} KB</span>
                                                     </div>
-                                                </div>
+                                                </a>
                                                 <button 
                                                     type="button"
                                                     onClick={() => removeAttachment(file.driveFileId || file.id)} 
@@ -1143,10 +1144,11 @@ export default function GlobalTodoClient({
 
                             <button 
                                 onClick={handleAddTask}
-                                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 group hover:scale-[1.02] active:scale-[0.98]"
+                                disabled={newTaskUploadingCount > 0}
+                                className="w-full py-4 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white rounded-xl font-bold shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2 group hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                                <Plus size={20} strokeWidth={3} />
-                                タスクを作成
+                                {newTaskUploadingCount > 0 ? <Loader2 size={20} className="animate-spin" /> : <Plus size={20} strokeWidth={3} />}
+                                {newTaskUploadingCount > 0 ? "アップロード中..." : "タスクを作成"}
                             </button>
                         </div>
                     </div>
@@ -1159,6 +1161,10 @@ export default function GlobalTodoClient({
                     isOpen={!!editingTask}
                     onClose={() => setEditingTask(null)}
                     users={users.map(u => ({ uid: u.id, ...u }))}
+                    onTaskUpdate={(updatedTask) => {
+                        setTasks(prev => prev.map(t => t.id === updatedTask.id ? { ...updatedTask, threadTitle: t.threadTitle } : t));
+                        setEditingTask(null);
+                    }}
                 />
             )}
             <ReportModal 

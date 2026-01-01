@@ -158,7 +158,7 @@ class Logger {
   }
 
   private sanitize(data: any): any {
-    if (!data) return undefined;
+    if (data === undefined || data === null) return null;
     if (typeof data !== 'object') return data;
     
     try {

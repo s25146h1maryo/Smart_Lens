@@ -14,6 +14,7 @@ import {
     Paperclip, FileIcon, Loader2, ChevronRight, AlertCircle,
     CheckCircle2, Briefcase, ArrowRight, TrendingUp, Users, MessageSquare, Zap, User, Globe
 } from "lucide-react";
+import UnifiedHeader from "@/components/UnifiedHeader";
 
 interface DashboardStats {
     pendingTaskCount: number;
@@ -113,6 +114,7 @@ export default function DashboardClient({
     const [newTaskAssigneeSearch, setNewTaskAssigneeSearch] = useState("");
     const [newTaskAttachments, setNewTaskAttachments] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploadingCount, setUploadingCount] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { uploadFile } = useChatUpload();
 
@@ -305,6 +307,35 @@ export default function DashboardClient({
         }
     };
 
+    // Attachment Handlers
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            setUploadingCount(prev => prev + files.length);
+            
+            files.forEach(file => {
+                uploadFile(
+                    file, 
+                    { threadId: newTaskThread }, // Use thread context for new task uploads
+                    (attachment) => {
+                        setNewTaskAttachments(prev => [...prev, {
+                            name: attachment.name,
+                            driveFileId: attachment.id,
+                            mimeType: attachment.type,
+                            webViewLink: attachment.url
+                        }]);
+                        setUploadingCount(prev => Math.max(0, prev - 1));
+                    }
+                );
+            });
+        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const removeAttachment = (idx: number) => {
+        setNewTaskAttachments(prev => prev.filter((_, i) => i !== idx));
+    };
+
     const filteredUsers = users.filter(u => 
         (u.nickname || u.name || "").toLowerCase().includes(newTaskAssigneeSearch.toLowerCase())
     );
@@ -424,47 +455,44 @@ export default function DashboardClient({
             <div className="relative z-10 flex flex-col h-full p-4 max-w-[1920px] mx-auto w-full gap-3 overflow-hidden">
                 
                 {/* Header */}
-                <header className="flex items-center justify-between flex-shrink-0">
-                    <div className="flex items-center gap-4">
-                        <h1 className="text-xl font-black bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">Dashboard</h1>
-                        <span className="text-sm text-zinc-500 font-medium">{todayStr}</span>
-                        
-                        {/* Filter Toggle */}
-                        <div className="flex bg-zinc-900/70 rounded-xl p-1 border border-white/5">
-                            <button 
-                                onClick={() => setFilterMode('mine')}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'mine' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
-                            >
-                                <User size={12} /> 自分のみ
-                            </button>
-                            <button 
-                                onClick={() => setFilterMode('all')}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
-                            >
-                                <Globe size={12} /> 全体
-                            </button>
-                        </div>
-
-                        <button 
-                            onClick={handleRoomToggle}
-                            className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-lg ${isRoomOpen ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10' : 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-red-500/10'}`}
-                        >
-                            <span className={`w-2 h-2 rounded-full ${isRoomOpen ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></span>
-                            {isRoomOpen ? '開室中' : '閉室中'}
-                        </button>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <Link href="/todo" className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600/20 to-violet-600/20 border border-indigo-500/30 hover:border-indigo-400/50 transition-all text-sm text-indigo-300 font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/10">
-                            📋 GlobalTodo <ArrowRight size={14}/>
-                        </Link>
-                        <Link href="/settings" className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                            <span className="text-xs text-zinc-400">{currentUser.name}</span>
-                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 flex items-center justify-center text-white font-bold text-[10px]">
-                                {currentUser.email?.[0].toUpperCase()}
+                <UnifiedHeader
+                    title="Dashboard"
+                    leftChildren={
+                        <>
+                            <span className="text-sm text-zinc-500 font-medium">{todayStr}</span>
+                            
+                            {/* Filter Toggle */}
+                            <div className="flex bg-zinc-900/70 rounded-xl p-1 border border-white/5">
+                                <button 
+                                    onClick={() => setFilterMode('mine')}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'mine' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
+                                >
+                                    <User size={12} /> 自分のみ
+                                </button>
+                                <button 
+                                    onClick={() => setFilterMode('all')}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
+                                >
+                                    <Globe size={12} /> 全体
+                                </button>
                             </div>
-                        </Link>
-                    </div>
-                </header>
+
+                            <button 
+                                onClick={handleRoomToggle}
+                                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-lg ${isRoomOpen ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10' : 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-red-500/10'}`}
+                            >
+                                <span className={`w-2 h-2 rounded-full ${isRoomOpen ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></span>
+                                {isRoomOpen ? '開室中' : '閉室中'}
+                            </button>
+                        </>
+                    }
+                    user={currentUser}
+                    className="flex-shrink-0"
+                >
+                    <Link href="/todo" className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600/20 to-violet-600/20 border border-indigo-500/30 hover:border-indigo-400/50 transition-all text-sm text-indigo-300 font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/10">
+                        📋 GlobalTodo <ArrowRight size={14}/>
+                    </Link>
+                </UnifiedHeader>
 
                 {/* KPI Row - Clickable */}
                 <div className="grid grid-cols-5 gap-3 flex-shrink-0">
@@ -792,11 +820,50 @@ export default function DashboardClient({
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Attachments */}
+                            <div>
+                                <label className="text-[10px] font-bold text-zinc-400 uppercase mb-1.5 flex items-center gap-2">
+                                    <Paperclip size={12}/> 添付ファイル
+                                </label>
+                                
+                                {newTaskAttachments.length > 0 && (
+                                    <div className="grid grid-cols-2 gap-2 mb-2">
+                                        {newTaskAttachments.map((file, idx) => (
+                                            <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-zinc-900/50 border border-white/5 hover:bg-white/5 transition-colors group">
+                                                <a href={file.webViewLink || file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 flex-1 min-w-0">
+                                                    <div className="w-6 h-6 rounded bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
+                                                        <FileIcon size={12} />
+                                                    </div>
+                                                    <div className="truncate text-xs text-zinc-300">{file.name}</div>
+                                                </a>
+                                                <button onClick={() => removeAttachment(idx)} className="opacity-0 group-hover:opacity-100 p-1 text-zinc-500 hover:text-red-400"><X size={12}/></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+
+                                <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
+                                <button 
+                                    onClick={() => {
+                                        if (!newTaskThread) {
+                                            alert("先にスレッドを選択してください");
+                                            return;
+                                        }
+                                        fileInputRef.current?.click();
+                                    }}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-zinc-700 hover:border-indigo-500 bg-zinc-800/30 hover:bg-indigo-500/10 text-zinc-500 hover:text-indigo-400 transition-all group"
+                                >
+                                    <Plus size={14} className="transition-transform group-hover:scale-110" />
+                                    <span className="text-xs font-bold">ファイルを追加</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="border-t border-white/5 p-4 bg-white/5 flex justify-end gap-3">
                             <button onClick={() => setShowNewTask(false)} className="px-4 py-2 rounded-xl text-zinc-400 hover:text-white text-xs font-bold">キャンセル</button>
-                            <button onClick={handleNewTaskSubmit} disabled={!newTaskTitle.trim() || !newTaskThread || !newTaskDate || isSubmitting} className="flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
-                                {isSubmitting ? <Loader2 size={14} className="animate-spin"/> : <Plus size={14}/>} 作成
+                            <button onClick={handleNewTaskSubmit} disabled={!newTaskTitle.trim() || !newTaskThread || !newTaskDate || isSubmitting || uploadingCount > 0} className="flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-lg shadow-indigo-500/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all">
+                                {(isSubmitting || uploadingCount > 0) ? <Loader2 size={14} className="animate-spin"/> : <Plus size={14}/>} 
+                                {uploadingCount > 0 ? "アップロード中..." : "作成"}
                             </button>
                         </div>
                     </div>

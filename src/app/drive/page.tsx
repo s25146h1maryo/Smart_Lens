@@ -28,7 +28,7 @@ export default async function DrivePage({
   }
 
   return (
-    <DriveLayout>
+    <DriveLayout user={session?.user}>
         <DriveClientWrapper 
             initialItems={items} 
             breadcrumbs={breadcrumbs} 

@@ -1,11 +1,10 @@
 "use client";
 
 import { createTask } from "@/app/actions/task";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import styles from "./thread.module.css";
-import { getUploadSession } from "@/app/actions/thread";
-import DriveUploadButton from "@/app/drive/DriveUploadButton";
-import { Paperclip } from "lucide-react";
+import { Paperclip, Loader2, FileIcon, X, Plus } from "lucide-react";
+import { useChatUpload } from "@/app/messages/ChatUploadContext";
 
 export default function CreateTaskModal({ 
     threadId, 
@@ -16,6 +15,38 @@ export default function CreateTaskModal({
 }) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [attachments, setAttachments] = useState<any[]>([]);
+    const [uploadingCount, setUploadingCount] = useState(0);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const { uploadFile } = useChatUpload();
+
+    // Upload Handlers
+    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files) {
+            const files = Array.from(e.target.files);
+            setUploadingCount(prev => prev + files.length);
+            
+            files.forEach(file => {
+                uploadFile(
+                    file, 
+                    { threadId }, 
+                    (attachment) => {
+                        setAttachments(prev => [...prev, {
+                            name: attachment.name,
+                            driveFileId: attachment.id,
+                            mimeType: attachment.type,
+                            webViewLink: attachment.url
+                        }]);
+                        setUploadingCount(prev => Math.max(0, prev - 1));
+                    }
+                );
+            });
+        }
+        if (fileInputRef.current) fileInputRef.current.value = "";
+    };
+
+    const removeAttachment = (idx: number) => {
+        setAttachments(prev => prev.filter((_, i) => i !== idx));
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -27,7 +58,6 @@ export default function CreateTaskModal({
             const startDateStr = formData.get("startDate") as string;
             const endDateStr = formData.get("endDate") as string;
             const dueDateStr = formData.get("dueDate") as string;
-            // Note: attachments are already uploaded and in state
 
             const startDate = startDateStr ? new Date(startDateStr).getTime() : undefined;
             const endDate = endDateStr ? new Date(endDateStr).getTime() : undefined;
@@ -40,7 +70,7 @@ export default function CreateTaskModal({
                 assigneeIds: [], // TODO: Add Member Selector
                 attachments: attachments.map(f => ({
                     name: f.name,
-                    driveFileId: f.id,
+                    driveFileId: f.driveFileId,
                     mimeType: f.mimeType,
                     webViewLink: f.webViewLink
                 }))
@@ -88,38 +118,41 @@ export default function CreateTaskModal({
                     <div>
                         <label className="text-sm text-zinc-400 mb-2 block">添付ファイル</label>
                         
-                        {/* List Uploaded Files */}
                         {attachments.length > 0 && (
-                            <ul className="mb-2 space-y-1">
-                                {attachments.map((f, i) => (
-                                    <li key={i} className="text-xs bg-zinc-800 p-2 rounded flex justify-between items-center">
-                                        <div className="flex items-center gap-1"><Paperclip size={12} /> {f.name}</div>
-                                        <button type="button" onClick={() => setAttachments(prev => prev.filter((_, idx) => idx !== i))} className="text-red-400 hover:text-red-300">×</button>
-                                    </li>
+                            <div className="space-y-2 mb-2">
+                                {attachments.map((file, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-zinc-800 border border-zinc-700">
+                                        <a href={file.webViewLink || file.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 flex-1 min-w-0 pointer-events-none md:pointer-events-auto">
+                                            <div className="w-6 h-6 rounded bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
+                                                <FileIcon size={12} />
+                                            </div>
+                                            <div className="truncate text-xs text-zinc-300">{file.name}</div>
+                                        </a>
+                                        <button type="button" onClick={() => removeAttachment(idx)} className="p-1 text-zinc-500 hover:text-red-400"><X size={12}/></button>
+                                    </div>
                                 ))}
-                            </ul>
+                            </div>
                         )}
 
-                        <DriveUploadButton 
-                            parentId="task_attachments" 
-                            onSuccess={(file) => {
-                                // file object from Google Response might vary. 
-                                // finalizeUpload returns { success: true, item: ... }
-                                // DriveUploadButton now calls onSuccess(finalData from Google) which is the Google File Object.
-                                // Wait, DriveUploadButton implementation:
-                                // const gFile = await res.json(); onSuccess(gFile);
-                                // So 'file' here is clean Google File object (id, name, mimeType, webViewLink).
-                                if (file) {
-                                    setAttachments(prev => [...prev, file]);
-                                }
-                            }} 
-                        />
+                        <input type="file" multiple className="hidden" ref={fileInputRef} onChange={handleFileUpload} />
+                        <button 
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-dashed border-zinc-700 hover:border-indigo-500 bg-zinc-800/30 hover:bg-indigo-500/10 text-zinc-500 hover:text-indigo-400 transition-all text-sm"
+                        >
+                            <Plus size={14} /> ファイルを追加
+                        </button>
                     </div>
 
                     <div className="flex justify-end gap-2 mt-4">
                         <button type="button" onClick={onClose} className="px-4 py-2 text-zinc-400 hover:text-white" disabled={isSubmitting}>キャンセル</button>
-                        <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold" disabled={isSubmitting}>
-                            {isSubmitting ? '作成中...' : '作成'}
+                        <button 
+                            type="submit" 
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg font-bold flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" 
+                            disabled={isSubmitting || uploadingCount > 0}
+                        >
+                            {(isSubmitting || uploadingCount > 0) && <Loader2 size={16} className="animate-spin" />}
+                            {uploadingCount > 0 ? 'アップロード中...' : isSubmitting ? '作成中...' : '作成'}
                         </button>
                     </div>
                 </form>

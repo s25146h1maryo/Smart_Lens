@@ -3,6 +3,7 @@
 import { Message } from "@/types/chat";
 import { useEffect, useRef, useState } from "react";
 import { updateChatMetadata, markAsSeen } from "@/app/actions/chat";
+import UnifiedHeader from "@/components/UnifiedHeader";
 import GroupSettingsModal from "./GroupSettingsModal";
 import { useChatMessages, usePresence, useOnlineStatus, useTyping, useChatReadStatus, sendReaction, markChatMetaAsSeen } from "@/hooks/useRTDB";
 import { Settings, ArrowDown, RotateCcw, Send, FileText, Folder, Reply } from "lucide-react";
@@ -242,22 +243,26 @@ export default function ChatWindow({ currentUser, recipientUser, chatId, initial
         <div className="flex flex-col h-full bg-zinc-950/50 relative overflow-hidden"> 
             
             {/* Header */}
-            <div className="p-4 border-b border-white/10 flex items-center justify-between bg-zinc-900/50 backdrop-blur-md z-20 relative">
-                <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold relative ${isGroup ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-indigo-600'}`}>
-                        {isGroup ? '#' : (recipientUser?.nickname?.[0] || recipientUser?.name?.[0] || "?")}
-                        {!isGroup && onlineStatuses[recipientUser?.id || ''] === 'online' && (
-                            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900"></div>
-                        )}
+            <UnifiedHeader
+                user={currentUser}
+                title={
+                    <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold relative ${isGroup ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-indigo-600'}`}>
+                            {isGroup ? '#' : (recipientUser?.nickname?.[0] || recipientUser?.name?.[0] || "?")}
+                            {!isGroup && onlineStatuses[recipientUser?.id || ''] === 'online' && (
+                                <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+                            )}
+                        </div>
+                        <h3 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">{headerTitle}</h3>
                     </div>
-                    <div>
-                        <h3 className="font-bold text-zinc-100">{headerTitle}</h3>
-                        <span className={`text-xs ${headerSubtitle.includes('オンライン') ? 'text-green-400 font-bold' : 'text-zinc-400'}`}>
-                            {headerSubtitle}
-                        </span>
-                    </div>
-                </div>
-
+                }
+                subtitle={
+                    <span className={headerSubtitle.includes('オンライン') ? 'text-green-400 font-bold' : 'text-zinc-400'}>
+                        {headerSubtitle}
+                    </span>
+                }
+                className="px-4 py-3 border-b border-white/10 bg-zinc-900/50 backdrop-blur-md z-20 relative mb-0"
+            >
                 {isGroup && (
                     <button 
                         onClick={() => setShowSettings(true)}
@@ -266,7 +271,7 @@ export default function ChatWindow({ currentUser, recipientUser, chatId, initial
                         <Settings className="w-5 h-5" />
                     </button>
                 )}
-            </div>
+            </UnifiedHeader>
 
             {/* Scroll/Return Button - MOVED TO TOP CENTER (Below Header) */}
             {(showScrollBottom || returnToMessageId) && (

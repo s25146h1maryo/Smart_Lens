@@ -2,6 +2,7 @@
 
 import { DriveItem } from "@/types/drive";
 import { useRouter } from "next/navigation";
+import UnifiedHeader from "@/components/UnifiedHeader";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { Folder, Image as ImageIcon, FileText, File, Pencil, Trash2, Plus, Move, Download, X, CheckSquare } from "lucide-react";
@@ -459,7 +460,7 @@ export function CreateFolderButton({ parentId, onSuccess, isShared }: { parentId
 }
 
 // --- Layout Wrapper ---
-export function DriveLayout({ children }: { children: React.ReactNode }) {
+export function DriveLayout({ children, user }: { children: React.ReactNode; user?: any }) {
     const searchParams = useSearchParams();
     const mode = searchParams.get('mode');
     const isShared = mode === 'shared';
@@ -494,8 +495,11 @@ export function DriveLayout({ children }: { children: React.ReactNode }) {
                  </nav>
              </div>
              
-             <div className="flex-1 overflow-y-auto p-8 relative scroll-smooth">
-                 {children}
+             <div className="flex-1 flex flex-col min-w-0">
+
+                 <div className="flex-1 overflow-y-auto p-8 relative scroll-smooth">
+                     {children}
+                 </div>
              </div>
         </div>
     );

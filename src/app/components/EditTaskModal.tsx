@@ -12,9 +12,10 @@ interface EditTaskModalProps {
     isOpen: boolean;
     onClose: () => void;
     users: any[];
+    onTaskUpdate?: (task: Task) => void;
 }
 
-export default function EditTaskModal({ task, isOpen, onClose, users }: EditTaskModalProps) {
+export default function EditTaskModal({ task, isOpen, onClose, users, onTaskUpdate }: EditTaskModalProps) {
     const [title, setTitle] = useState(task.title);
     const [description, setDescription] = useState(task.description || "");
     const [priority, setPriority] = useState<Task['priority']>(task.priority);
@@ -25,6 +26,7 @@ export default function EditTaskModal({ task, isOpen, onClose, users }: EditTask
     // Upload Context
     const { uploadFile } = useChatUpload();
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const [uploadingCount, setUploadingCount] = useState(0);
 
     // Assignee Search
     const [assigneeSearch, setAssigneeSearch] = useState("");
@@ -94,7 +96,7 @@ export default function EditTaskModal({ task, isOpen, onClose, users }: EditTask
                 endDate = parseDate(date2);
             }
 
-            await updateTask(task.id, task.threadId, {
+            const updatedData = {
                 title,
                 description,
                 priority,
@@ -105,7 +107,18 @@ export default function EditTaskModal({ task, isOpen, onClose, users }: EditTask
                 endDate,
                 dueDate,
                 attachments
-            });
+            };
+
+            await updateTask(task.id, task.threadId, updatedData);
+            
+            if (onTaskUpdate) {
+                onTaskUpdate({
+                    ...task,
+                    ...updatedData,
+                    updatedAt: Date.now()
+                });
+            }
+
             onClose();
         } catch (error) {
             console.error(error);
@@ -138,7 +151,10 @@ export default function EditTaskModal({ task, isOpen, onClose, users }: EditTask
     // --- Attachment Logic ---
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            Array.from(e.target.files).forEach(file => {
+            const files = Array.from(e.target.files);
+            setUploadingCount(prev => prev + files.length);
+            
+            files.forEach(file => {
                 uploadFile(
                     file, 
                     { taskId: task.id, threadId: task.threadId }, 
@@ -149,6 +165,7 @@ export default function EditTaskModal({ task, isOpen, onClose, users }: EditTask
                             mimeType: attachment.type,
                             webViewLink: attachment.url
                         }]);
+                        setUploadingCount(prev => Math.max(0, prev - 1));
                     }
                 );
             });
@@ -307,7 +324,7 @@ export default function EditTaskModal({ task, isOpen, onClose, users }: EditTask
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                 {attachments.map((file, idx) => (
                                     <div key={idx} className="flex items-center gap-2 p-2 rounded-lg bg-zinc-900/50 border border-white/5 hover:bg-white/5 transition-colors group">
-                                        <a href={file.webViewLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 flex-1 min-w-0">
+                                        <a href={file.webViewLink || (file as any).url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 flex-1 min-w-0">
                                             <div className="w-6 h-6 rounded bg-indigo-500/10 flex items-center justify-center text-indigo-400 shrink-0">
                                                 <FileIcon size={12} />
                                             </div>
@@ -338,8 +355,13 @@ export default function EditTaskModal({ task, isOpen, onClose, users }: EditTask
                     </button>
                     <div className="flex items-center gap-3">
                         <button onClick={onClose} className="px-4 py-2 rounded-lg text-zinc-400 hover:text-white text-xs font-bold transition-colors">キャンセル</button>
-                        <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 transition-all text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed">
-                            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 変更を保存
+                        <button 
+                            onClick={handleSave} 
+                            disabled={isSaving || uploadingCount > 0} 
+                            className="flex items-center gap-2 px-6 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-500/20 transition-all text-xs font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            {(isSaving || uploadingCount > 0) ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} 
+                            {uploadingCount > 0 ? "アップロード中..." : "変更を保存"}
                         </button>
                     </div>
                 </div>
