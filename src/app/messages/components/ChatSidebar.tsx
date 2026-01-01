@@ -108,7 +108,7 @@ export default function ChatSidebar({ users, currentUser, chats: initialChats, s
     };
 
     return (
-        <div className="w-80 border-r border-white/10 flex flex-col bg-zinc-900/50 backdrop-blur-md">
+        <div className="w-full md:w-80 border-r border-white/10 flex flex-col bg-zinc-900/50 backdrop-blur-md h-full">
             <div className="p-4 border-b border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-white">メッセージ</h2>

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Thread, UserProfile } from "@/types";
 import { UIUser } from "./ThreadView";
 import { addMembers, removeMember, deleteThread, updateThreadSettings } from "@/app/actions/thread";
+import { getDmId } from "@/app/actions/chat";
 import { useRouter } from "next/navigation";
 
 interface ThreadSettingsModalProps {
@@ -204,23 +205,31 @@ export default function ThreadSettingsModal({ thread, users, currentUserRole, on
                                         const user = users.find(u => u.id === mid);
                                         const isOwner = thread.createdBy === mid;
                                         return (
-                                            <div key={mid} className="flex items-center justify-between rounded-xl bg-zinc-900/30 border border-white/5 p-3">
+                                            <div 
+                                                key={mid} 
+                                                onClick={async () => {
+                                                    // Navigate to DM with this user
+                                                    const dmId = await getDmId(mid);
+                                                    router.push(`/messages?chat=${dmId}`);
+                                                }}
+                                                className="flex items-center justify-between rounded-xl bg-zinc-900/30 border border-white/5 p-3 cursor-pointer hover:bg-zinc-800/50 hover:border-indigo-500/20 transition-all group"
+                                            >
                                                 <div className="flex items-center gap-3">
-                                                    <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400">
+                                                    <div className="h-8 w-8 rounded-full bg-zinc-800 flex items-center justify-center text-xs font-bold text-zinc-400 group-hover:text-indigo-300 transition-colors">
                                                         {(user?.nickname?.[0] || user?.name?.[0] || "?").toUpperCase()}
                                                     </div>
                                                     <div>
-                                                        <div className="text-sm font-medium text-white flex items-center gap-2">
+                                                        <div className="text-sm font-medium text-white flex items-center gap-2 group-hover:text-indigo-200 transition-colors">
                                                             {user?.nickname || user?.name || "Unknown User"}
                                                             {isOwner && <span className="text-[10px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded border border-amber-500/20">OWNER</span>}
                                                         </div>
-                                                        <div className="text-[10px] text-zinc-500">ID: {mid}</div>
+                                                        <div className="text-[10px] text-zinc-500">Click to DM</div>
                                                     </div>
                                                 </div>
                                                 
                                                 {canManage && !isOwner && (
                                                     <button 
-                                                        onClick={() => handleRemoveMember(mid)}
+                                                        onClick={(e) => { e.stopPropagation(); handleRemoveMember(mid); }}
                                                         disabled={isSubmitting}
                                                         className="text-xs text-zinc-500 hover:text-red-400 hover:bg-red-500/10 px-2 py-1 rounded transition-all"
                                                     >

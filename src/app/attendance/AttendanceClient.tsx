@@ -97,7 +97,7 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                      <User size={120} />
                 </div>
                 
-                <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex items-center justify-between mb-6 relative z-10 pt-10 md:pt-0 pl-10 md:pl-0">
                     <div>
                         <h2 className="text-xl font-bold text-indigo-100 flex items-center gap-2">
                             <span className="bg-indigo-500 w-1 h-6 rounded-full block"></span>
@@ -155,7 +155,10 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                                                        <div className="absolute inset-0 bg-white/20 animate-pulse pointer-events-none" />
                                                    )}
 
-                                                   <span className="relative z-10 drop-shadow-sm">{STATUS_LABELS[status]}</span>
+                                                   <span className="relative z-10 drop-shadow-sm">
+                                                        <span className="md:hidden">{status === 'NoST' ? '校内' : STATUS_LABELS[status]}</span>
+                                                        <span className="hidden md:inline">{STATUS_LABELS[status]}</span>
+                                                   </span>
                                                    
                                                    {isSelected && (
                                                        <span className="relative z-10 w-2 h-2 bg-white rounded-full shadow-[0_0_8px_white] animate-pulse" />
@@ -252,7 +255,9 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                                                         px-1 md:px-2 py-1 rounded text-[9px] md:text-[10px] font-bold shadow-sm whitespace-nowrap overflow-hidden text-ellipsis
                                                         ${STATUS_COLORS[status]}
                                                     `}>
-                                                        <span className="md:hidden">{STATUS_LABELS[status].substring(0, 2)}</span>
+                                                        <span className="md:hidden">
+                                                            {status === 'NoST' ? '校内' : STATUS_LABELS[status].substring(0, 2)}
+                                                        </span>
                                                         <span className="hidden md:inline">{STATUS_LABELS[status]}</span>
                                                     </div>
                                                 ) : (

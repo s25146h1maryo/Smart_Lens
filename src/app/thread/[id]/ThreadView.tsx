@@ -45,56 +45,33 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
 
     return (
         <div className="flex flex-col h-full bg-[#050510] text-white">
-            {/* Header Section */}
-            {/* Header Section */}
-            <header className="relative px-6 md:px-8 py-6 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between bg-[#050510]/80 backdrop-blur-xl sticky top-0 z-20 overflow-hidden">
+            {/* Header Section - Compact Mobile */}
+            <header className="relative px-4 md:px-6 py-2 md:py-4 border-b border-white/5 flex items-center justify-between bg-[#050510]/80 backdrop-blur-xl sticky top-0 z-20 overflow-hidden">
                 {/* Ambient Background */}
                 <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-transparent pointer-events-none" />
                 
-                <div className="relative flex items-center gap-5 z-10 w-full md:w-auto pl-16 md:pl-0">
-                     <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-2xl shadow-indigo-500/20 ring-1 ring-white/10 shrink-0">
+                <div className="relative flex items-center gap-3 z-10 w-full md:w-auto pl-10 md:pl-0">
+                     <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl md:rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-lg md:text-2xl font-bold text-white shadow-lg shadow-indigo-500/20 ring-1 ring-white/10 shrink-0">
                         {thread.title[0]}
                      </div>
                      <div className="flex-1 min-w-0">
-                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-1 truncate">{thread.title}</h1>
-                        <div className="flex items-center gap-3 text-sm">
-                            <p className="text-zinc-400 line-clamp-1 max-w-sm">
-                                {thread.description || "説明なし"}
+                        <h1 className="text-lg md:text-2xl font-bold tracking-tight text-white leading-tight truncate">{thread.title}</h1>
+                        {thread.description && (
+                            <p className="text-zinc-500 text-[11px] md:text-sm line-clamp-1 max-w-xs md:max-w-sm">
+                                {thread.description}
                             </p>
-                            
-                            {/* Member Facepile */}
-                            {users && users.length > 0 && (
-                                <div className="hidden md:flex items-center pl-3 border-l border-white/10 ml-1">
-                                    <div className="flex -space-x-2">
-                                        {users.slice(0, 4).map((user, i) => (
-                                            <div key={user.id || i} className="w-6 h-6 rounded-full border border-[#050510] bg-zinc-800 flex items-center justify-center text-[10px] text-white" title={user.name}>
-                                                {user.image ? (
-                                                    <img src={user.image} alt={user.name} className="w-full h-full rounded-full object-cover" />
-                                                ) : (
-                                                    (user.name?.[0] || "U").toUpperCase()
-                                                )}
-                                            </div>
-                                        ))}
-                                        {users.length > 4 && (
-                                            <div className="w-6 h-6 rounded-full border border-[#050510] bg-zinc-800 flex items-center justify-center text-[9px] text-zinc-400">
-                                                +{users.length - 4}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <span className="ml-2 text-xs text-zinc-500">{users.length}名</span>
-                                </div>
-                            )}
-                        </div>
+                        )}
                      </div>
                 </div>
 
-                <div className="relative flex items-center gap-3 mt-4 md:mt-0 self-end md:self-auto z-10">
+                <div className="relative flex items-center gap-2 md:gap-3 z-10 shrink-0">
                      {/* Settings Trigger */}
                     <button 
                         onClick={() => setIsSettingsOpen(true)}
-                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all active:scale-95"
+                        className="h-8 w-8 md:h-10 md:w-10 flex items-center justify-center rounded-lg md:rounded-xl bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all active:scale-95"
                     >
-                        <Settings size={20} />
+                        <Settings size={16} className="md:hidden"/>
+                        <Settings size={20} className="hidden md:block"/>
                     </button>
                 </div>
             </header>

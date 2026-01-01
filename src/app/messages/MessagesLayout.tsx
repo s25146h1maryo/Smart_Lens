@@ -64,6 +64,7 @@ export default function MessagesLayout({
                         users={users}
                         participants={participants}
                         isMobile={true}
+                        onBack={() => router.push('/messages')}
                     />
                 ) : (
                     <ChatSidebar 

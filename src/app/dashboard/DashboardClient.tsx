@@ -457,58 +457,95 @@ export default function DashboardClient({
 
             <div className="relative z-10 flex flex-col h-full p-4 max-w-[1920px] mx-auto w-full gap-3 overflow-hidden">
                 
-                {/* Header */}
-                <UnifiedHeader
-                    title="Dashboard"
-                    leftChildren={
-                        <>
-                            <span className="text-sm text-zinc-500 font-medium">{todayStr}</span>
-                            
-                            {/* Filter Toggle */}
-                            <div className="flex bg-zinc-900/70 rounded-xl p-1 border border-white/5">
-                                <button 
-                                    onClick={() => setFilterMode('mine')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'mine' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
-                                >
-                                    <User size={12} /> 自分のみ
-                                </button>
-                                <button 
-                                    onClick={() => setFilterMode('all')}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
-                                >
-                                    <Globe size={12} /> 全体
-                                </button>
-                            </div>
+                {/* Header - Hidden on Mobile, shown on Desktop */}
+                <div className="hidden lg:block">
+                    <UnifiedHeader
+                        title="Dashboard"
+                        leftChildren={
+                            <>
+                                <span className="text-sm text-zinc-500 font-medium">{todayStr}</span>
+                                
+                                {/* Filter Toggle */}
+                                <div className="flex bg-zinc-900/70 rounded-xl p-1 border border-white/5">
+                                    <button 
+                                        onClick={() => setFilterMode('mine')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'mine' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
+                                    >
+                                        <User size={12} /> 自分のみ
+                                    </button>
+                                    <button 
+                                        onClick={() => setFilterMode('all')}
+                                        className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${filterMode === 'all' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-500/20' : 'text-zinc-400 hover:text-white'}`}
+                                    >
+                                        <Globe size={12} /> 全体
+                                    </button>
+                                </div>
 
+                                <button 
+                                    onClick={handleRoomToggle}
+                                    className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-lg ${isRoomOpen ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10' : 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-red-500/10'}`}
+                                >
+                                    <span className={`w-2 h-2 rounded-full ${isRoomOpen ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></span>
+                                    {isRoomOpen ? '開室中' : '閉室中'}
+                                </button>
+                            </>
+                        }
+                        user={currentUser}
+                        className="flex-shrink-0"
+                    >
+                        <Link href="/todo" className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600/20 to-violet-600/20 border border-indigo-500/30 hover:border-indigo-400/50 transition-all text-sm text-indigo-300 font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/10">
+                            📋 GlobalTodo <ArrowRight size={14}/>
+                        </Link>
+                    </UnifiedHeader>
+                </div>
+
+                {/* Mobile Header - Minimal */}
+                <div className="flex lg:hidden items-center justify-between p-1 mb-1">
+                    <div className="flex items-center gap-2 pl-10">
+                        <span className="text-xs text-zinc-500 font-medium">{todayStr}</span>
+                        <button 
+                            onClick={handleRoomToggle}
+                            className={`px-2 py-1 rounded-full text-[10px] font-bold flex items-center gap-1 transition-all ${isRoomOpen ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/20 text-red-400 border border-red-500/30'}`}
+                        >
+                            <span className={`w-1.5 h-1.5 rounded-full ${isRoomOpen ? 'bg-emerald-400' : 'bg-red-400'}`}></span>
+                            {isRoomOpen ? '開室' : '閉室'}
+                        </button>
+                        <div className="flex bg-zinc-900/70 rounded-lg p-0.5 border border-white/5">
                             <button 
-                                onClick={handleRoomToggle}
-                                className={`px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-2 transition-all hover:scale-105 shadow-lg ${isRoomOpen ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-emerald-500/10' : 'bg-red-500/20 text-red-400 border border-red-500/30 shadow-red-500/10'}`}
+                                onClick={() => setFilterMode('mine')}
+                                className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 ${filterMode === 'mine' ? 'bg-indigo-600 text-white' : 'text-zinc-500'}`}
                             >
-                                <span className={`w-2 h-2 rounded-full ${isRoomOpen ? 'bg-emerald-400 animate-pulse' : 'bg-red-400'}`}></span>
-                                {isRoomOpen ? '開室中' : '閉室中'}
+                                <User size={10} /> 自分
                             </button>
-                        </>
-                    }
-                    user={currentUser}
-                    className="flex-shrink-0"
-                >
-                    <Link href="/todo" className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600/20 to-violet-600/20 border border-indigo-500/30 hover:border-indigo-400/50 transition-all text-sm text-indigo-300 font-bold flex items-center gap-2 shadow-lg shadow-indigo-500/10">
-                        📋 GlobalTodo <ArrowRight size={14}/>
+                            <button 
+                                onClick={() => setFilterMode('all')}
+                                className={`px-2 py-1 rounded text-[10px] font-bold flex items-center gap-1 ${filterMode === 'all' ? 'bg-indigo-600 text-white' : 'text-zinc-500'}`}
+                            >
+                                <Globe size={10} /> 全体
+                            </button>
+                        </div>
+                    </div>
+                    <Link href="/todo" className="px-2 py-1 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-[10px] text-indigo-300 font-bold flex items-center gap-1">
+                        📋 Todo <ArrowRight size={10}/>
                     </Link>
-                </UnifiedHeader>
+                </div>
 
-                {/* KPI Row - Clickable */}
-                {/* Mobile Tab Navigation */}
-                <div className="flex lg:hidden bg-zinc-900/80 backdrop-blur-md p-1 rounded-xl border border-white/5 mb-3 shrink-0">
+                {/* Mobile Tab Navigation - Sleek Bottom Bar styling or better Top Tabs */}
+                <div className="flex lg:hidden bg-zinc-950/80 backdrop-blur-xl p-1 rounded-2xl border border-white/10 mb-4 shrink-0 shadow-lg sticky top-0 z-50">
                     {(['home', 'tasks', 'menu'] as const).map(tab => (
                         <button
                             key={tab}
                             onClick={() => { setActiveTab(tab); }}
-                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                            className={`flex-1 py-3 rounded-xl text-xs font-bold transition-all duration-300 flex items-center justify-center gap-2 ${activeTab === tab ? 'bg-indigo-600 text-white shadow-indigo-500/20 shadow-lg transform scale-100' : 'text-zinc-500 hover:text-zinc-300 scale-95'}`}
                         >
-                            {tab === 'home' && '🏠 ホーム'}
-                            {tab === 'tasks' && '📋 タスク'}
-                            {tab === 'menu' && '📊 メニュー'}
+                            {tab === 'home' && <span className="text-lg">🏠</span>}
+                            {tab === 'tasks' && <span className="text-lg">📋</span>}
+                            {tab === 'menu' && <span className="text-lg">📊</span>}
+                            <span className={activeTab === tab ? 'block' : 'hidden'}>
+                                {tab === 'home' && 'ホーム'}
+                                {tab === 'tasks' && 'タスク'}
+                                {tab === 'menu' && 'メニュー'}
+                            </span>
                         </button>
                     ))}
                 </div>
@@ -582,8 +619,11 @@ export default function DashboardClient({
                         <div className="text-[10px] text-amber-400/70 mt-1">/ {filteredStats.total} 件</div>
                     </button>
 
-                    {/* Unread Messages */}
-                    <div className="w-full bg-gradient-to-br from-rose-600/20 to-rose-900/10 border border-rose-500/20 rounded-2xl p-4 backdrop-blur-sm">
+                    {/* Unread Messages - Clickable */}
+                    <Link 
+                        href="/messages"
+                        className="w-full bg-gradient-to-br from-rose-600/20 to-rose-900/10 border border-rose-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-rose-400/40 hover:scale-[1.02] transition-all block"
+                    >
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-xl bg-rose-500/20 flex items-center justify-center">
                                 <MessageSquare className="text-rose-400" size={18} />
@@ -592,14 +632,14 @@ export default function DashboardClient({
                         </div>
                         <div className="text-3xl font-black text-white">{stats.unreadMessageCount}</div>
                         <div className="text-[10px] text-rose-400/70 mt-1">件のメッセージ</div>
-                    </div>
+                    </Link>
                 </div>
 
                 {/* Main Grid */}
                 <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-3 min-h-0 overflow-y-auto lg:overflow-hidden">
                     
                     {/* LEFT: Task Panels (8 cols) - Visible on 'tasks' tab OR desktop */}
-                    <div className={`${activeTab === 'tasks' ? 'flex' : 'hidden'} lg:flex lg:col-span-8 w-full flex-col gap-3 min-h-0`}>
+                    <div className={`${activeTab === 'tasks' ? 'flex' : 'hidden'} lg:flex lg:col-span-8 w-full flex-col gap-3 min-h-0 pb-20 lg:pb-0`}>
                         
                         {/* High Priority */}
                         <div className="flex-1 bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex flex-col overflow-hidden backdrop-blur-sm min-h-[300px]">

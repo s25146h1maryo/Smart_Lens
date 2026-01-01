@@ -37,11 +37,11 @@ export default function UnifiedHeader({
     const initial = displayUser.image && displayUser.image.length === 1 ? displayUser.image : displayUser.name[0]?.toUpperCase() || "U";
 
     return (
-        <header className={`flex items-center justify-between mb-1 md:mb-2 ${className}`}>
-            <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-4 pl-12 md:pl-0"> {/* pl-12 to make space for hamburger button */}
+        <header className={`flex items-center justify-between py-0 mb-0 min-h-[40px] ${className}`}>
+            <div className="flex flex-col justify-center">
+                <div className="flex items-center gap-2 pl-14 md:pl-0"> {/* pl-14 for hamburger */}
                     {typeof title === 'string' ? (
-                        <h1 className="hidden md:block text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
+                        <h1 className="hidden md:block text-lg md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400 leading-tight">
                             {title}
                         </h1>
                     ) : (
@@ -51,7 +51,7 @@ export default function UnifiedHeader({
                 </div>
                 
                 {subtitle && (
-                    <div className="text-zinc-400 text-xs md:text-sm mt-1">
+                    <div className="text-zinc-500 text-[10px] md:text-xs leading-none pl-14 md:pl-0">
                         {subtitle}
                     </div>
                 )}

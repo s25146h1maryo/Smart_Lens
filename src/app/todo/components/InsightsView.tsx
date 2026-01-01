@@ -142,7 +142,7 @@ export default function InsightsView({ tasks, onTaskClick }: InsightsViewProps) 
         <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 w-full overflow-x-hidden">
             
             {/* KPI Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-4 px-1">
                 <KPICard 
                     icon={<CheckCircle2 className="text-emerald-500" size={24} />}
                     label="プロジェクト完了率"
@@ -423,7 +423,7 @@ function KPICard({icon, label, value, sub, color, labelOverride, onClick}: {icon
     return (
         <div 
             onClick={onClick}
-            className={`bg-zinc-900/40 border border-white/5 p-4 md:p-5 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:bg-zinc-900/60 transition-colors h-full ${onClick ? 'cursor-pointer' : ''}`}
+            className={`bg-zinc-900/40 border border-white/5 p-3 md:p-5 rounded-xl md:rounded-3xl relative overflow-hidden group hover:bg-zinc-900/60 transition-colors h-full ${onClick ? 'cursor-pointer' : ''}`}
         >
            <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
                 <div className={`p-1.5 md:p-2 rounded-xl bg-${color}-500/10`}>

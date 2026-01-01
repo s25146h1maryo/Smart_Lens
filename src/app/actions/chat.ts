@@ -48,6 +48,39 @@ export async function createGroup(name: string, participantIds: string[]) {
     return { success: true, chatId: newChatRef.id };
 }
 
+// NEW: Create a Group Chat linked to a Thread (locked from manual member changes)
+export async function createGroupForThread(threadId: string, threadTitle: string, participantIds: string[]) {
+    const session = await auth();
+    if (!session?.user?.id) throw new Error("Unauthorized");
+
+    // Check if a linked group already exists
+    const existingLinked = await db.collection("chats")
+        .where("threadId", "==", threadId)
+        .limit(1)
+        .get();
+
+    if (!existingLinked.empty) {
+        // Already exists, return the existing one
+        return { success: true, chatId: existingLinked.docs[0].id, existing: true };
+    }
+
+    const allParticipants = Array.from(new Set([...participantIds, session.user.id]));
+    
+    const newChatRef = db.collection("chats").doc();
+    await newChatRef.set({
+        type: 'group',
+        name: `📌 ${threadTitle}`,
+        participants: allParticipants,
+        createdAt: Date.now(),
+        lastMessage: "Thread group created",
+        updatedAt: Date.now(),
+        seenBy: [session.user.id],
+        threadId: threadId, // LINK to thread
+    });
+
+    return { success: true, chatId: newChatRef.id, existing: false };
+}
+
 export async function addMembersToGroup(chatId: string, newParticipantIds: string[]) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
@@ -58,6 +91,11 @@ export async function addMembersToGroup(chatId: string, newParticipantIds: strin
     if (!chatDoc.exists) throw new Error("Chat not found");
     const data = chatDoc.data();
     if (data?.type !== 'group') throw new Error("Not a group chat");
+
+    // V12: Block manual member changes on thread-linked group chats
+    if (data?.threadId) {
+        throw new Error("このグループはスレッドに連動しているため、メンバーの手動追加はできません。スレッド設定から管理してください。");
+    }
 
     // SECURITY: Only existing participants or admins can add members
     const currentParticipants = data.participants || [];
@@ -133,6 +171,11 @@ export async function updateGroup(chatId: string, name: string) {
     
     if (!chatDoc.exists) throw new Error("Chat not found");
     const data = chatDoc.data();
+
+    // V12: Block name changes on thread-linked group chats
+    if (data?.threadId) {
+        throw new Error("このグループはスレッドに連動しているため、名前の変更はできません。");
+    }
     
     // SECURITY: Only participants or admins can update group name
     const participants = data?.participants || [];
@@ -263,6 +306,11 @@ export async function kickMember(chatId: string, targetUserId: string) {
     if (!chatDoc.exists) return { success: false, message: "Chat not found" };
     const data = chatDoc.data();
     if (data?.type !== 'group') return { success: false, message: "Not a group chat" };
+
+    // V12: Block manual kicks on thread-linked group chats
+    if (data?.threadId) {
+        return { success: false, message: "このグループはスレッドに連動しているため、手動でのメンバー削除はできません。スレッド設定から管理してください。" };
+    }
 
     const participants = data.participants || [];
     const updatedParticipants = participants.filter((p: string) => p !== targetUserId);
