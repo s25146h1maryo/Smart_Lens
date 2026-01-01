@@ -32,6 +32,7 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
     const [tasks, setTasks] = useState<Task[]>(initialTasks);
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const [showArchivedModal, setShowArchivedModal] = useState(false);
+    const [isMobileTaskCreatorOpen, setIsMobileTaskCreatorOpen] = useState(false);
 
     const handleTaskCreated = (newTask: Task) => {
         setTasks(prev => [newTask, ...prev]);
@@ -45,26 +46,55 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
     return (
         <div className="flex flex-col h-full bg-[#050510] text-white">
             {/* Header Section */}
-            <header className="px-8 py-6 border-b border-white/5 flex items-center justify-between bg-black/20 backdrop-blur-md sticky top-0 z-10">
-                <div className="flex items-center gap-4">
-                     <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 flex items-center justify-center text-xl font-bold text-white shadow-lg shadow-indigo-500/20">
+            {/* Header Section */}
+            <header className="relative px-6 md:px-8 py-6 border-b border-white/5 flex flex-col md:flex-row md:items-center justify-between bg-[#050510]/80 backdrop-blur-xl sticky top-0 z-20 overflow-hidden">
+                {/* Ambient Background */}
+                <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-transparent pointer-events-none" />
+                
+                <div className="relative flex items-center gap-5 z-10 w-full md:w-auto pl-16 md:pl-0">
+                     <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-2xl md:text-3xl font-bold text-white shadow-2xl shadow-indigo-500/20 ring-1 ring-white/10 shrink-0">
                         {thread.title[0]}
                      </div>
-                     <div>
-                        <h1 className="text-2xl font-bold tracking-tight">{thread.title}</h1>
-                        <p className="text-sm text-zinc-400 mt-0.5 line-clamp-1 max-w-md">
-                            {thread.description || "説明なし"}
-                        </p>
+                     <div className="flex-1 min-w-0">
+                        <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-white mb-1 truncate">{thread.title}</h1>
+                        <div className="flex items-center gap-3 text-sm">
+                            <p className="text-zinc-400 line-clamp-1 max-w-sm">
+                                {thread.description || "説明なし"}
+                            </p>
+                            
+                            {/* Member Facepile */}
+                            {users && users.length > 0 && (
+                                <div className="hidden md:flex items-center pl-3 border-l border-white/10 ml-1">
+                                    <div className="flex -space-x-2">
+                                        {users.slice(0, 4).map((user, i) => (
+                                            <div key={user.id || i} className="w-6 h-6 rounded-full border border-[#050510] bg-zinc-800 flex items-center justify-center text-[10px] text-white" title={user.name}>
+                                                {user.image ? (
+                                                    <img src={user.image} alt={user.name} className="w-full h-full rounded-full object-cover" />
+                                                ) : (
+                                                    (user.name?.[0] || "U").toUpperCase()
+                                                )}
+                                            </div>
+                                        ))}
+                                        {users.length > 4 && (
+                                            <div className="w-6 h-6 rounded-full border border-[#050510] bg-zinc-800 flex items-center justify-center text-[9px] text-zinc-400">
+                                                +{users.length - 4}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <span className="ml-2 text-xs text-zinc-500">{users.length}名</span>
+                                </div>
+                            )}
+                        </div>
                      </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="relative flex items-center gap-3 mt-4 md:mt-0 self-end md:self-auto z-10">
                      {/* Settings Trigger */}
                     <button 
                         onClick={() => setIsSettingsOpen(true)}
-                        className="h-9 w-9 flex items-center justify-center rounded-lg bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all"
+                        className="h-10 w-10 flex items-center justify-center rounded-xl bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all active:scale-95"
                     >
-                        <Settings size={18} />
+                        <Settings size={20} />
                     </button>
                 </div>
             </header>
@@ -78,9 +108,20 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
                 <section className="grid grid-cols-1 xl:grid-cols-4 gap-8">
                     {/* Left: Task Creator Card */}
                     <div className="xl:col-span-1">
-                        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 sticky top-8">
-                            <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider mb-4">クイックアクション (タスク作成)</h3>
-                            <SidebarTaskCreator threadId={thread.id} users={users} onTaskCreated={handleTaskCreated} />
+                        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-5 xl:sticky xl:top-8 static">
+                            <div className="flex items-center justify-between mb-4 xl:mb-4">
+                                <h3 className="text-sm font-bold text-zinc-400 uppercase tracking-wider">クイックアクション (タスク作成)</h3>
+                                <button 
+                                    onClick={() => setIsMobileTaskCreatorOpen(!isMobileTaskCreatorOpen)}
+                                    className="xl:hidden p-2 bg-zinc-800 rounded-lg text-zinc-400 hover:text-white"
+                                >
+                                    {isMobileTaskCreatorOpen ? <ExternalLink size={16} className="rotate-180" /> : <ExternalLink size={16} />}
+                                </button>
+                            </div>
+                            
+                            <div className={`${isMobileTaskCreatorOpen ? 'block' : 'hidden'} xl:block`}>
+                                <SidebarTaskCreator threadId={thread.id} users={users} onTaskCreated={handleTaskCreated} />
+                            </div>
                             
                             <button 
                                 onClick={() => setShowArchivedModal(true)}

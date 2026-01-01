@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import ChatSidebar from "./components/ChatSidebar";
 import ChatWindow from "./components/ChatWindow";
 import { Chat } from "@/types/chat";
@@ -39,6 +40,44 @@ export default function MessagesLayout({
     // Derived active chat or user being viewed
     const showWindow = !!chatId; // If we have a chatId, we show window (even if empty)
 
+    // Mobile Detection
+    const [isMobile, setIsMobile] = useState(false);
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    if (isMobile) {
+        return (
+             <div className="w-full h-full">
+                {showWindow ? (
+                     <ChatWindow 
+                        key={chatId}
+                        currentUser={currentUser}
+                        recipientUser={selectedUser}
+                        chatId={chatId}
+                        initialMessages={initialMessages}
+                        chatName={chatName}
+                        isGroup={isGroup}
+                        users={users}
+                        participants={participants}
+                        isMobile={true}
+                    />
+                ) : (
+                    <ChatSidebar 
+                        users={users} 
+                        currentUser={currentUser} 
+                        chats={chats} 
+                        selectedUserId={selectedUserId} 
+                        onSelectUser={handleSelectUser} 
+                    />
+                )}
+             </div>
+        );
+    }
+
     return (
         <div className="flex w-full h-full">
             <ChatSidebar 
@@ -49,7 +88,7 @@ export default function MessagesLayout({
                 onSelectUser={handleSelectUser} 
             />
             
-            <div className="flex-1 h-full">
+            <div className="flex-1 h-full min-w-0">
                 {showWindow ? (
                     <ChatWindow 
                         key={chatId} // Force re-mount on chat change to reset state cleanly

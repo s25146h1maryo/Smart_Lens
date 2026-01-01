@@ -497,7 +497,7 @@ export function DriveLayout({ children, user }: { children: React.ReactNode; use
              
              <div className="flex-1 flex flex-col min-w-0">
 
-                 <div className="flex-1 overflow-y-auto p-8 relative scroll-smooth">
+                 <div className="flex-1 overflow-y-auto p-4 md:p-8 relative scroll-smooth">
                      {children}
                  </div>
              </div>

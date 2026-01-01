@@ -107,7 +107,7 @@ class Logger {
           const logsRef = rtdb.ref('server_logs');
           
           // Fetch the last MAX_LOGS logs to find the boundary
-          const recentSnap = await logsRef.orderByChild('createdAt').limitToLast(MAX_LOGS).get();
+          const recentSnap = await logsRef.orderByChild('createdAt').limitToLast(MAX_LOGS).once('value');
           
           if (!recentSnap.exists()) return;
 
@@ -129,7 +129,7 @@ class Logger {
           // This keeps it strictly bounded without scanning whole DB.
           
           const bufferSize = 50;
-          const checkSnap = await logsRef.orderByChild('createdAt').limitToLast(MAX_LOGS + bufferSize).get();
+          const checkSnap = await logsRef.orderByChild('createdAt').limitToLast(MAX_LOGS + bufferSize).once('value');
           
           if (!checkSnap.exists()) return;
           

@@ -26,7 +26,7 @@ export default async function CalendarPage() {
     return (
         <div className="flex h-screen bg-[#050510] text-white overflow-hidden">
              {/* Main Content */}
-             <div className="flex-1 flex flex-col pl-[72px]"> {/* Sidebar offset */}
+             <div className="flex-1 flex flex-col pl-0 md:pl-[72px]"> {/* Sidebar offset - Mobile 0 */}
                 <CalendarClient 
                     internalTasks={internalTasks} 
                     externalTasks={externalTasks}

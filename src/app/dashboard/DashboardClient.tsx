@@ -96,6 +96,9 @@ export default function DashboardClient({
     
     // KPI Drill-down modal
     const [activeDrillDown, setActiveDrillDown] = useState<DrillDownType>(null);
+    
+    // Mobile Active Tab
+    const [activeTab, setActiveTab] = useState<'home' | 'tasks' | 'menu'>('home');
 
     // Room status toggle
     const { current: roomCurrent, toggleStatus } = useRoomStatus();
@@ -495,11 +498,32 @@ export default function DashboardClient({
                 </UnifiedHeader>
 
                 {/* KPI Row - Clickable */}
-                <div className="grid grid-cols-5 gap-3 flex-shrink-0">
+                {/* Mobile Tab Navigation */}
+                <div className="flex lg:hidden bg-zinc-900/80 backdrop-blur-md p-1 rounded-xl border border-white/5 mb-3 shrink-0">
+                    {(['home', 'tasks', 'menu'] as const).map(tab => (
+                        <button
+                            key={tab}
+                            onClick={() => { setActiveTab(tab); }}
+                            className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${activeTab === tab ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                        >
+                            {tab === 'home' && '🏠 ホーム'}
+                            {tab === 'tasks' && '📋 タスク'}
+                            {tab === 'menu' && '📊 メニュー'}
+                        </button>
+                    ))}
+                </div>
+
+                {/* KPI Section */}
+                {/* Mobile: Carousel (Home Tab Only), Desktop: Grid (Always) */}
+                <div className={`
+                    ${activeTab === 'home' ? 'grid' : 'hidden'} 
+                    grid-cols-2 lg:grid-cols-5 gap-3 flex-shrink-0 
+                    /* No overflow, no snap, just grid */
+                `}>
                     {/* Today Due */}
                     <button 
                         onClick={() => setActiveDrillDown('todayDue')}
-                        className="bg-gradient-to-br from-violet-600/20 to-violet-900/10 border border-violet-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-violet-400/40 hover:scale-[1.02] transition-all"
+                        className="w-full bg-gradient-to-br from-violet-600/20 to-violet-900/10 border border-violet-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-violet-400/40 hover:scale-[1.02] transition-all"
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-xl bg-violet-500/20 flex items-center justify-center">
@@ -514,7 +538,7 @@ export default function DashboardClient({
                     {/* Pending */}
                     <button 
                         onClick={() => setActiveDrillDown('pending')}
-                        className="bg-gradient-to-br from-cyan-600/20 to-cyan-900/10 border border-cyan-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-cyan-400/40 hover:scale-[1.02] transition-all"
+                        className="w-full bg-gradient-to-br from-cyan-600/20 to-cyan-900/10 border border-cyan-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-cyan-400/40 hover:scale-[1.02] transition-all"
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-xl bg-cyan-500/20 flex items-center justify-center">
@@ -529,7 +553,7 @@ export default function DashboardClient({
                     {/* Overall Completion */}
                     <button 
                         onClick={() => setActiveDrillDown('overallComplete')}
-                        className="bg-gradient-to-br from-emerald-600/20 to-emerald-900/10 border border-emerald-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-emerald-400/40 hover:scale-[1.02] transition-all"
+                        className="w-full bg-gradient-to-br from-emerald-600/20 to-emerald-900/10 border border-emerald-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-emerald-400/40 hover:scale-[1.02] transition-all"
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-xl bg-emerald-500/20 flex items-center justify-center">
@@ -546,7 +570,7 @@ export default function DashboardClient({
                     {/* Tasks Done */}
                     <button 
                         onClick={() => setActiveDrillDown('myComplete')}
-                        className="bg-gradient-to-br from-amber-600/20 to-amber-900/10 border border-amber-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-amber-400/40 hover:scale-[1.02] transition-all"
+                        className="w-full bg-gradient-to-br from-amber-600/20 to-amber-900/10 border border-amber-500/20 rounded-2xl p-4 backdrop-blur-sm text-left hover:border-amber-400/40 hover:scale-[1.02] transition-all"
                     >
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center">
@@ -559,7 +583,7 @@ export default function DashboardClient({
                     </button>
 
                     {/* Unread Messages */}
-                    <div className="bg-gradient-to-br from-rose-600/20 to-rose-900/10 border border-rose-500/20 rounded-2xl p-4 backdrop-blur-sm">
+                    <div className="w-full bg-gradient-to-br from-rose-600/20 to-rose-900/10 border border-rose-500/20 rounded-2xl p-4 backdrop-blur-sm">
                         <div className="flex items-center gap-2 mb-2">
                             <div className="w-8 h-8 rounded-xl bg-rose-500/20 flex items-center justify-center">
                                 <MessageSquare className="text-rose-400" size={18} />
@@ -572,13 +596,13 @@ export default function DashboardClient({
                 </div>
 
                 {/* Main Grid */}
-                <div className="flex-1 grid grid-cols-12 gap-3 min-h-0">
+                <div className="flex-1 flex flex-col lg:grid lg:grid-cols-12 gap-3 min-h-0 overflow-y-auto lg:overflow-hidden">
                     
-                    {/* LEFT: Task Panels (8 cols) */}
-                    <div className="col-span-8 flex flex-col gap-3 min-h-0">
+                    {/* LEFT: Task Panels (8 cols) - Visible on 'tasks' tab OR desktop */}
+                    <div className={`${activeTab === 'tasks' ? 'flex' : 'hidden'} lg:flex lg:col-span-8 w-full flex-col gap-3 min-h-0`}>
                         
                         {/* High Priority */}
-                        <div className="flex-1 bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex flex-col overflow-hidden backdrop-blur-sm">
+                        <div className="flex-1 bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex flex-col overflow-hidden backdrop-blur-sm min-h-[300px]">
                             <div className="flex items-center justify-between mb-3 flex-shrink-0">
                                 <div className="flex items-center gap-3">
                                     <div className="w-1 h-5 rounded-full bg-red-500"></div>
@@ -587,7 +611,7 @@ export default function DashboardClient({
                                 </div>
                                 <Link href="/todo?priority=high" className="text-[10px] text-zinc-500 hover:text-indigo-400 flex items-center gap-0.5 font-medium">すべて <ChevronRight size={12}/></Link>
                             </div>
-                            <div className="flex-1 overflow-auto grid grid-cols-2 xl:grid-cols-3 gap-2 content-start custom-scrollbar">
+                            <div className="flex-1 overflow-auto grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-2 content-start custom-scrollbar">
                                 {filteredHighPriorityTasks.length > 0 ? filteredHighPriorityTasks.map(task => (
                                     <TaskCard key={task.id} task={task} />
                                 )) : (
@@ -602,7 +626,7 @@ export default function DashboardClient({
                         </div>
 
                         {/* My Tasks / All Tasks */}
-                        <div className="flex-1 bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex flex-col overflow-hidden backdrop-blur-sm">
+                        <div className="flex-1 bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex flex-col overflow-hidden backdrop-blur-sm min-h-[300px]">
                             <div className="flex items-center justify-between mb-3 flex-shrink-0">
                                 <div className="flex items-center gap-3">
                                     <h2 className="text-sm font-black text-white">📋 {filterMode === 'mine' ? 'マイタスク' : '全タスク'}</h2>
@@ -613,7 +637,7 @@ export default function DashboardClient({
                                 </div>
                                 <Link href="/todo" className="text-[10px] text-zinc-500 hover:text-indigo-400 flex items-center gap-0.5 font-medium">すべて <ChevronRight size={12}/></Link>
                             </div>
-                            <div className="flex-1 overflow-auto grid grid-cols-2 xl:grid-cols-3 gap-2 content-start custom-scrollbar">
+                            <div className="flex-1 overflow-auto grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-2 content-start custom-scrollbar">
                                 {filteredMyTasks.length > 0 ? filteredMyTasks.slice(0, 9).map(task => (
                                     <TaskCard key={task.id} task={task} />
                                 )) : (
@@ -625,11 +649,54 @@ export default function DashboardClient({
                         </div>
                     </div>
 
-                    {/* RIGHT: Sidebar (4 cols) */}
-                    <div className="col-span-4 flex flex-col gap-3 min-h-0">
+                    {/* RIGHT: Sidebar (4 cols) - Visible on 'menu' (Home) tab? No, let's put it in 'menu' tab OR 'home' tab? 
+                        The plan said: "Home/Overview" -> KPI + Quick Nav + Activity. 
+                        "Tasks" -> Task Lists.
+                        "Activity" -> Attendance etc.
+                        Let's map:
+                        'home' -> KPI + Quick Nav + (maybe truncated Activity)
+                        'tasks' -> Task Lists
+                        'menu' -> Full Activity + Attendance + Recent Threads
                         
-                        {/* Today's Attendance */}
-                        <div className="flex-1 bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex flex-col overflow-hidden backdrop-blur-sm">
+                        Wait, in the simple tab structure I coded above: 'home', 'tasks', 'menu'.
+                        Let's put Sidebar content in 'menu' (or 'activity').
+                    */}
+                    <div className={`${activeTab === 'menu' || activeTab === 'home' ? 'flex' : 'hidden'} lg:flex lg:col-span-4 w-full flex-col gap-3 min-h-0 pb-20 lg:pb-0`}>
+                        
+                        {/* Quick Nav - Show on Home on Mobile */}
+                        <div className={`${activeTab === 'home' ? 'block' : 'hidden'} lg:block grid grid-cols-2 sm:grid-cols-4 gap-2 flex-shrink-0`}>
+                             <Link href="/calendar" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group">
+                                <span className="text-lg group-hover:scale-110 transition-transform">📅</span>
+                                <span className="text-[9px] text-zinc-500 font-medium">カレンダー</span>
+                            </Link>
+                            {/* ... (Other links unchanged but hidden in replace block, need to reconstruct) 
+                                WAIT, I am replacing the entire block. I must include all Quick Nav content.
+                            */}
+                            <Link href="/drive" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group">
+                                <span className="text-lg group-hover:scale-110 transition-transform">📁</span>
+                                <span className="text-[9px] text-zinc-500 font-medium">ドライブ</span>
+                            </Link>
+                            <Link href="/messages" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-rose-500/30 hover:bg-rose-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group relative">
+                                <span className="text-lg group-hover:scale-110 transition-transform">💬</span>
+                                <span className="text-[9px] text-zinc-500 font-medium">メッセージ</span>
+                                {stats.unreadMessageCount > 0 && <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>}
+                            </Link>
+                            <Link href="/threads" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group">
+                                <span className="text-lg group-hover:scale-110 transition-transform">📂</span>
+                                <span className="text-[9px] text-zinc-500 font-medium">スレッド</span>
+                            </Link>
+                        </div>
+
+                        {/* Today's Attendance - Show on Menu on Mobile */}
+                        {/* Logic: if mobile & home -> show Quick Nav only? 
+                           If mobile & menu -> show Attendance, Recent Threads, New Task?
+                           Desktop -> Show all.
+                           
+                           My condition above: `${activeTab === 'menu' || activeTab === 'home' ? 'flex' : 'hidden'}`
+                           I need to hide specific children based on tab.
+                        */}
+                        
+                        <div className={`${activeTab === 'menu' ? 'flex' : 'hidden'} lg:flex flex-1 bg-zinc-900/50 border border-white/5 rounded-2xl p-4 flex-col overflow-hidden backdrop-blur-sm`}>
                             <div className="flex items-center justify-between mb-3 flex-shrink-0">
                                 <div className="flex items-center gap-2">
                                     <Users className="text-indigo-400" size={16} />
@@ -675,8 +742,8 @@ export default function DashboardClient({
                             </div>
                         </div>
 
-                        {/* Recent Threads */}
-                        <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-4 backdrop-blur-sm">
+                        {/* Recent Threads - Show on Menu */}
+                        <div className={`${activeTab === 'menu' ? 'block' : 'hidden'} lg:block bg-zinc-900/50 border border-white/5 rounded-2xl p-4 backdrop-blur-sm`}>
                             <div className="flex items-center justify-between mb-3">
                                 <h2 className="text-sm font-black text-white flex items-center gap-2">🔗 最近アクセス</h2>
                                 <Link href="/threads" className="text-[10px] text-zinc-500 hover:text-indigo-400 font-medium">すべて →</Link>
@@ -690,31 +757,10 @@ export default function DashboardClient({
                             </div>
                         </div>
 
-                        {/* Quick Nav */}
-                        <div className="grid grid-cols-4 gap-2 flex-shrink-0">
-                            <Link href="/calendar" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group">
-                                <span className="text-lg group-hover:scale-110 transition-transform">📅</span>
-                                <span className="text-[9px] text-zinc-500 font-medium">カレンダー</span>
-                            </Link>
-                            <Link href="/drive" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group">
-                                <span className="text-lg group-hover:scale-110 transition-transform">📁</span>
-                                <span className="text-[9px] text-zinc-500 font-medium">ドライブ</span>
-                            </Link>
-                            <Link href="/messages" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-rose-500/30 hover:bg-rose-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group relative">
-                                <span className="text-lg group-hover:scale-110 transition-transform">💬</span>
-                                <span className="text-[9px] text-zinc-500 font-medium">メッセージ</span>
-                                {stats.unreadMessageCount > 0 && <div className="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>}
-                            </Link>
-                            <Link href="/threads" className="p-3 rounded-xl bg-zinc-900/50 border border-white/5 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all flex flex-col items-center justify-center gap-1 text-center group">
-                                <span className="text-lg group-hover:scale-110 transition-transform">📂</span>
-                                <span className="text-[9px] text-zinc-500 font-medium">スレッド</span>
-                            </Link>
-                        </div>
-
-                        {/* New Task Button */}
+                        {/* New Task Button - Show on Home & Menu */}
                         <button 
                             onClick={() => setShowNewTask(true)}
-                            className="p-4 rounded-2xl bg-gradient-to-r from-violet-600/30 to-indigo-600/30 border border-violet-500/40 hover:border-violet-400/60 transition-all flex items-center gap-4 group shadow-lg shadow-violet-500/10 hover:shadow-violet-500/20"
+                            className={`${activeTab !== 'tasks' ? 'flex' : 'hidden'} lg:flex p-4 rounded-2xl bg-gradient-to-r from-violet-600/30 to-indigo-600/30 border border-violet-500/40 hover:border-violet-400/60 transition-all items-center gap-4 group shadow-lg shadow-violet-500/10 hover:shadow-violet-500/20`}
                         >
                             <div className="w-10 h-10 rounded-xl bg-violet-500/30 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">➕</div>
                             <div className="text-left">

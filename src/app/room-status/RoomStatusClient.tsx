@@ -37,7 +37,7 @@ export default function RoomStatusClient({ currentUser }: RoomStatusClientProps)
     return (
         <div className="flex-1 overflow-auto bg-zinc-950">
             {/* Centered Content Container */}
-            <div className="min-h-full flex flex-col items-center justify-center p-8">
+            <div className="min-h-full flex flex-col items-center justify-center p-4 md:p-8">
                 <div className="w-full max-w-2xl space-y-8">
                     
                     {/* Main Status Display - Centered, Prominent */}
@@ -45,19 +45,19 @@ export default function RoomStatusClient({ currentUser }: RoomStatusClientProps)
                         {/* Status Icon & Text */}
                         <div className="space-y-4">
                             <div className={`
-                                inline-flex items-center justify-center w-32 h-32 rounded-full transition-all duration-500
+                                inline-flex items-center justify-center w-24 h-24 md:w-32 md:h-32 rounded-full transition-all duration-500
                                 ${isOpen 
                                     ? 'bg-emerald-500/20 ring-4 ring-emerald-500/30' 
                                     : 'bg-red-500/20 ring-4 ring-red-500/30'}
                             `}>
                                 {isOpen 
-                                    ? <DoorOpen size={64} className="text-emerald-400" /> 
-                                    : <DoorClosed size={64} className="text-red-400" />
+                                    ? <DoorOpen className="w-12 h-12 md:w-16 md:h-16 text-emerald-400" /> 
+                                    : <DoorClosed className="w-12 h-12 md:w-16 md:h-16 text-red-400" />
                                 }
                             </div>
                             
                             <div>
-                                <div className={`text-5xl font-bold mb-2 ${isOpen ? 'text-emerald-400' : 'text-red-400'}`}>
+                                <div className={`text-4xl md:text-5xl font-bold mb-2 ${isOpen ? 'text-emerald-400' : 'text-red-400'}`}>
                                     {isOpen ? '開室中' : '閉室中'}
                                 </div>
                                 {current && (

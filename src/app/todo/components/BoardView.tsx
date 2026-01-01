@@ -4,7 +4,7 @@ import { Task } from "@/types";
 import { format } from "date-fns";
 import { ja } from "date-fns/locale";
 import { updateTaskStatus, updateTask } from "@/app/actions/task";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertCircle, CalendarDays, Pin, Pencil, User as UserIcon } from "lucide-react";
 import { 
     DndContext, 
@@ -39,19 +39,19 @@ const getPriorityStyles = (priority?: string) => {
     }
 };
 
-function SortableTask({ task, users, onEdit }: { task: TaskWithThread, users: any[], onEdit: (task: TaskWithThread) => void }) {
+function SortableTask({ task, users, onEdit, isMobile }: { task: TaskWithThread, users: any[], onEdit: (task: TaskWithThread) => void, isMobile?: boolean }) {
     const {
         attributes,
         listeners,
         setNodeRef,
         transform,
         transition,
-    } = useSortable({ id: task.id });
+    } = useSortable({ id: task.id, disabled: isMobile });
 
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
-        touchAction: 'none'
+        touchAction: isMobile ? 'auto' : 'none'
     };
 
     const priorityStyle = getPriorityStyles(task.priority);
@@ -106,11 +106,11 @@ function SortableTask({ task, users, onEdit }: { task: TaskWithThread, users: an
     );
 }
 
-function Column({ id, tasks, label, users, onEdit }: { id: string, tasks: TaskWithThread[], label: string, users: any[], onEdit: (task: TaskWithThread) => void }) {
+function Column({ id, tasks, label, users, onEdit, isMobile }: { id: string, tasks: TaskWithThread[], label: string, users: any[], onEdit: (task: TaskWithThread) => void, isMobile?: boolean }) {
     const taskIds = tasks.map(t => t.id);
 
     return (
-        <div className="flex h-full min-w-[320px] max-w-[400px] flex-col rounded-2xl border border-white/5 bg-black/20 p-4 backdrop-blur-sm">
+        <div className="flex h-full min-w-[300px] md:min-w-[320px] flex-1 flex-col rounded-2xl border border-white/5 bg-black/20 p-4 backdrop-blur-sm">
             <div className="mb-4 flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
                     <span className="font-bold text-zinc-400">{label}</span>
@@ -123,7 +123,7 @@ function Column({ id, tasks, label, users, onEdit }: { id: string, tasks: TaskWi
             <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
                 <div className="flex flex-1 flex-col gap-3 overflow-y-auto pr-1 custom-scrollbar">
                     {tasks.map(task => (
-                        <SortableTask key={task.id} task={task} users={users} onEdit={onEdit} />
+                        <SortableTask key={task.id} task={task} users={users} onEdit={onEdit} isMobile={isMobile} />
                     ))}
                     {tasks.length === 0 && (
                         <div className="flex h-24 items-center justify-center rounded-xl border-2 border-dashed border-white/5 bg-white/5 text-sm text-zinc-600">
@@ -147,6 +147,18 @@ interface BoardViewProps {
 
 export default function BoardView({ tasks, setTasks, users, threads, onEdit, groupBy = 'status' }: BoardViewProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
+  // Mobile Tab State
+  const [activeTab, setActiveTab] = useState<string>('todo'); // Default to 'todo' or first item of group
+  
+  // Mobile DnD Check
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -299,8 +311,8 @@ export default function BoardView({ tasks, setTasks, users, threads, onEdit, gro
       }
       
       return (
-          <div ref={setNodeRef} style={{ flex: 1, minWidth: '300px' }}>
-              <Column id={`col-${val}`} tasks={columnTasks} label={label} users={users} onEdit={onEdit} />
+          <div ref={setNodeRef} className="flex-1 w-full md:w-auto h-full md:min-w-[320px]">
+              <Column id={`col-${val}`} tasks={columnTasks} label={label} users={users} onEdit={onEdit} isMobile={isMobile} />
           </div>
       );
   };
@@ -312,38 +324,101 @@ export default function BoardView({ tasks, setTasks, users, threads, onEdit, gro
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-          <div className="flex gap-6 overflow-x-auto pb-4 h-full">
-              {mode === 'status' && (
-                  <>
-                    <DroppableColumn val="todo" label="未着手" />
-                    <DroppableColumn val="in-progress" label="進行中" />
-                    <DroppableColumn val="done" label="完了" />
-                  </>
-              )}
-              {mode === 'priority' && (
-                  <>
-                    <DroppableColumn val="high" label="優先度: 高" />
-                    <DroppableColumn val="medium" label="優先度: 中" />
-                    <DroppableColumn val="low" label="優先度: 低" />
-                  </>
-              )}
-              {mode === 'assignee' && (
-                  <>
-                    <DroppableColumn val="unassigned" label="未割り当て" />
-                    {users.map(u => (
-                        <DroppableColumn key={u.id} val={u.id} label={u.nickname || u.name} />
-                    ))}
-                  </>
-              )}
-              {mode === 'thread' && (
-                  <>
-                     {/* For threads, we use the passed threads list */}
-                     {threads?.map(t => (
-                         <DroppableColumn key={t.id} val={t.id} label={t.title} />
-                     ))}
-                     {(!threads || threads.length === 0) && <div className="text-zinc-500 p-4">スレッドが見つかりません</div>}
-                  </>
-              )}
+          {/* Mobile Tabs */}
+          <div className="flex md:hidden mb-4 bg-zinc-900 border border-white/10 rounded-xl p-1 shrink-0 overflow-x-auto scrollbar-hide">
+               {mode === 'status' && (
+                   ['todo', 'in-progress', 'done'].map(status => (
+                       <button
+                            key={status}
+                            onClick={() => setActiveTab(status)}
+                            className={`flex-1 min-w-[80px] py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === status ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                       >
+                           {status === 'todo' && '未着手'}
+                           {status === 'in-progress' && '進行中'}
+                           {status === 'done' && '完了'}
+                       </button>
+                   ))
+               )}
+               {mode === 'priority' && (
+                   ['high', 'medium', 'low'].map(p => (
+                       <button
+                            key={p}
+                            onClick={() => setActiveTab(p)}
+                            className={`flex-1 min-w-[80px] py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === p ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}
+                       >
+                           {p === 'high' && '高'}
+                           {p === 'medium' && '中'}
+                           {p === 'low' && '低'}
+                       </button>
+                   ))
+               )}
+               {/* For other modes, we might need a horizontal scroll tab list or select if too many items */}
+               {mode === 'assignee' && (
+                    <>
+                        <button onClick={() => setActiveTab('unassigned')} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === 'unassigned' ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}>未割り当て</button>
+                        {users.map(u => (
+                            <button key={u.id} onClick={() => setActiveTab(u.id)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === u.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}>{u.nickname || u.name}</button>
+                        ))}
+                    </>
+               )}
+                {mode === 'thread' && (
+                     threads?.map(t => (
+                        <button key={t.id} onClick={() => setActiveTab(t.id)} className={`px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${activeTab === t.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-zinc-500 hover:text-zinc-300'}`}>{t.title}</button>
+                     ))
+                )}
+          </div>
+
+          <div className="flex gap-6 h-full md:overflow-x-auto pb-4 scrollbar-hide">
+              {/* Mobile: Show Active Tab Column Only */}
+              <div className="md:hidden w-full h-full">
+                  {mode === 'status' && (
+                      <DroppableColumn val={activeTab} label={activeTab === 'todo' ? '未着手' : activeTab === 'in-progress' ? '進行中' : '完了'} />
+                  )}
+                  {mode === 'priority' && (
+                      <DroppableColumn val={activeTab} label={activeTab === 'high' ? '優先度: 高' : activeTab === 'medium' ? '優先度: 中' : '優先度: 低'} />
+                  )}
+                  {mode === 'assignee' && (
+                      <DroppableColumn val={activeTab} label={activeTab === 'unassigned' ? '未割り当て' : (users.find(u => u.id === activeTab)?.nickname || 'ユーザー')} />
+                  )}
+                  {mode === 'thread' && (
+                      <DroppableColumn val={activeTab} label={threads?.find(t => t.id === activeTab)?.title || 'スレッド'} />
+                  )}
+              </div>
+
+              {/* Desktop: Show All Columns */}
+              <div className="hidden md:flex gap-6 h-full">
+                  {mode === 'status' && (
+                      <>
+                        <DroppableColumn val="todo" label="未着手" />
+                        <DroppableColumn val="in-progress" label="進行中" />
+                        <DroppableColumn val="done" label="完了" />
+                      </>
+                  )}
+                  {mode === 'priority' && (
+                      <>
+                        <DroppableColumn val="high" label="優先度: 高" />
+                        <DroppableColumn val="medium" label="優先度: 中" />
+                        <DroppableColumn val="low" label="優先度: 低" />
+                      </>
+                  )}
+                  {mode === 'assignee' && (
+                      <>
+                        <DroppableColumn val="unassigned" label="未割り当て" />
+                        {users.map(u => (
+                            <DroppableColumn key={u.id} val={u.id} label={u.nickname || u.name} />
+                        ))}
+                      </>
+                  )}
+                  {mode === 'thread' && (
+                      <>
+                        {/* For threads, we use the passed threads list */}
+                        {threads?.map(t => (
+                            <DroppableColumn key={t.id} val={t.id} label={t.title} />
+                        ))}
+                        {(!threads || threads.length === 0) && <div className="text-zinc-500 p-4">スレッドが見つかりません</div>}
+                      </>
+                  )}
+              </div>
           </div>
           
            <DragOverlay>

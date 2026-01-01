@@ -43,9 +43,25 @@ export default function DriveClientWrapper({ initialItems, breadcrumbs, folderId
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            {/* Mobile Navigation (Switch Mode) */ }
+            <div className="md:hidden flex items-center gap-2 mb-4 bg-zinc-900/50 p-1 rounded-xl border border-white/5">
+                <Link 
+                    href="/drive" 
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isShared ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500'}`}
+                >
+                    My Drive
+                </Link>
+                <Link 
+                    href="/drive?mode=shared" 
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${isShared ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500'}`}
+                >
+                    Shared
+                </Link>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
                 <Breadcrumbs crumbs={breadcrumbs} onNavigate={handleNavigate} onRefresh={refresh} />
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 justify-end">
                     <CreateFolderButton parentId={folderId} onSuccess={refresh} isShared={isShared} />
                     <DriveUploadButton parentId={folderId} onSuccess={refresh} isShared={isShared} />
                 </div>

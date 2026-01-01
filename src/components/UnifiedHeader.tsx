@@ -37,11 +37,11 @@ export default function UnifiedHeader({
     const initial = displayUser.image && displayUser.image.length === 1 ? displayUser.image : displayUser.name[0]?.toUpperCase() || "U";
 
     return (
-        <header className={`flex items-center justify-between mb-8 ${className}`}>
+        <header className={`flex items-center justify-between mb-1 md:mb-2 ${className}`}>
             <div className="flex flex-col gap-1">
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-4 pl-12 md:pl-0"> {/* pl-12 to make space for hamburger button */}
                     {typeof title === 'string' ? (
-                        <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
+                        <h1 className="hidden md:block text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
                             {title}
                         </h1>
                     ) : (
@@ -51,25 +51,20 @@ export default function UnifiedHeader({
                 </div>
                 
                 {subtitle && (
-                    <div className="text-zinc-400 text-sm mt-1">
+                    <div className="text-zinc-400 text-xs md:text-sm mt-1">
                         {subtitle}
                     </div>
                 )}
             </div>
 
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 md:gap-6">
                 {children}
 
-                {/* Profile Pill - Only show if user prop was explicitly passed or we want to show default? 
-                    The dashboard showed it. Other pages might not need it if they have their own nav/controls.
-                    But "atmosphere" implies consistency.
-                    However, GlobalTodo has its own complex header.
-                    Let's allow hiding user if user={null}.
-                */}
+                {/* Profile Pill */}
                 {user && (
-                    <Link href="/settings" className="flex items-center gap-3 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group cursor-pointer">
+                    <Link href="/settings" className="flex items-center gap-3 px-2 md:px-3 py-1.5 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group cursor-pointer">
                         <span className="text-sm text-zinc-300 font-medium hidden sm:block">{displayUser.email || displayUser.name}</span>
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-500/20">
+                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-indigo-500/20">
                             {initial}
                         </div>
                     </Link>

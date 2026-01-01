@@ -16,7 +16,7 @@ export async function downloadLogsCsv() {
     try {
         const logsRef = rtdb.ref('server_logs');
         // Fetch last 1000 logs
-        const snapshot = await logsRef.orderByChild('createdAt').limitToLast(1000).get();
+        const snapshot = await logsRef.orderByChild('createdAt').limitToLast(1000).once('value');
 
         if (!snapshot.exists()) {
             return "Timestamp,Level,Message,User,Context,Data\nNo logs found.";

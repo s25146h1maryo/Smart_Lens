@@ -45,3 +45,6 @@ next-env.d.ts
 *-serviceaccount*.json
 serviceAccountKey*.json
 firebase-admin*.json
+
+# backup
+/user_backup

@@ -16,7 +16,7 @@ export default async function AdminUsersPage() {
     const users = await getAllUsersWithEmail();
 
     return (
-        <div className="min-h-screen bg-[#050510] text-white p-8 pl-[100px]"> {/* Padding for sidebar */}
+        <div className="min-h-screen bg-[#050510] text-white p-4 md:p-8 md:pl-[100px] pl-4"> {/* Padding for sidebar */}
             <div className="max-w-6xl mx-auto space-y-8">
                 <header className="flex items-center justify-between">
                     <div>

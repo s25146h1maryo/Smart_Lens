@@ -117,7 +117,11 @@ export default function GlobalTodoClient({
     // Workload View State
     const [workloadGroupBy, setWorkloadGroupBy] = useState<'user' | 'thread'>('user');
     const [expandedWorkload, setExpandedWorkload] = useState<string[]>([]);
+    const [showAllTasksIds, setShowAllTasksIds] = useState<string[]>([]); 
     const [assigneeDropdownOpen, setAssigneeDropdownOpen] = useState(false);
+    
+    // Mobile V2 State
+    const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
     const today = startOfDay(new Date());
 
@@ -509,30 +513,51 @@ export default function GlobalTodoClient({
                         className="px-6 py-2 !mb-0"
                         user={currentUser}
                         leftChildren={
-                            /* View Switcher - Japanese */
-                            <div className="hidden md:flex bg-zinc-900/50 p-1 rounded-xl border border-white/10 ml-4">
-                                {(['list', 'board', 'calendar', 'workload', 'insights'] as const).map(mode => (
-                                    <button
-                                        key={mode}
-                                        onClick={() => setViewMode(mode)}
-                                        className={`
-                                            flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all
-                                            ${viewMode === mode 
-                                                ? 'bg-zinc-800 text-white shadow-lg' 
-                                                : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}
-                                        `}
+                            /* View Switcher - Resposive (Scrollable on mobile) */
+                            <div className="flex items-center gap-2">
+                                {/* Mobile View Selector */}
+                                <div className="md:hidden relative">
+                                    <select 
+                                        value={viewMode} 
+                                        onChange={(e) => setViewMode(e.target.value as ViewMode)}
+                                        className="appearance-none bg-zinc-900 border border-white/10 text-white text-xs font-bold py-2 pl-3 pr-8 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/50"
                                     >
-                                        {mode === 'list' && <LayoutList size={14} />}
-                                        {mode === 'board' && <Kanban size={14} />}
-                                        {mode === 'calendar' && <Calendar size={14} />}
+                                        <option value="list">📝 リスト</option>
+                                        <option value="board">📋 ボード</option>
+                                        <option value="calendar">📅 カレンダー</option>
+                                        <option value="workload">📊 アサイン</option>
+                                        <option value="insights">✨ 分析</option>
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-400">
+                                        <ChevronDown size={12} />
+                                    </div>
+                                </div>
 
-                                        {mode === 'workload' && <BarChart3 size={14} />}
-                                        {mode === 'insights' && <Sparkles size={14} />}
-                                        <span>
-                                            {mode === 'list' ? 'リスト' : mode === 'board' ? 'ボード' : mode === 'calendar' ? 'カレンダー' : mode === 'workload' ? 'アサイン状況' : '分析'}
-                                        </span>
-                                    </button>
-                                ))}
+                                {/* Desktop View Switcher */}
+                                <div className="hidden md:flex bg-zinc-900/50 p-1 rounded-xl border border-white/10 ml-4 overflow-x-auto max-w-[calc(100vw-120px)] md:max-w-none scrollbar-hide">
+                                    {(['list', 'board', 'calendar', 'workload', 'insights'] as const).map(mode => (
+                                        <button
+                                            key={mode}
+                                            onClick={() => setViewMode(mode)}
+                                            className={`
+                                                flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all whitespace-nowrap
+                                                ${viewMode === mode 
+                                                    ? 'bg-zinc-800 text-white shadow-lg' 
+                                                    : 'text-zinc-500 hover:text-zinc-300 hover:bg-white/5'}
+                                            `}
+                                        >
+                                            {mode === 'list' && <LayoutList size={14} />}
+                                            {mode === 'board' && <Kanban size={14} />}
+                                            {mode === 'calendar' && <Calendar size={14} />}
+
+                                            {mode === 'workload' && <BarChart3 size={14} />}
+                                            {mode === 'insights' && <Sparkles size={14} />}
+                                            <span>
+                                                {mode === 'list' ? 'リスト' : mode === 'board' ? 'ボード' : mode === 'calendar' ? 'カレンダー' : mode === 'workload' ? 'アサイン状況' : '分析'}
+                                            </span>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         }
                     >
@@ -547,15 +572,25 @@ export default function GlobalTodoClient({
                         </button>
 
                         {/* Search */}
-                        <div className="group relative hidden sm:block">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
-                            <input
-                                type="text"
-                                placeholder="タスク検索..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                className="w-64 pl-11 pr-4 py-2 bg-black/20 border border-white/10 rounded-full text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:bg-zinc-900 focus:ring-1 focus:ring-indigo-500/50 transition-all"
-                            />
+                        <div className="group relative block w-full sm:w-auto mt-2 sm:mt-0 lg:block hidden"> {/* Initially hid on lg for cleaner header, but user wants mobile ready. wait, Search was hidden sm:block. Let's make it actionable. */}
+                            {/* Actually, putting search inside unified header children means it fights for space. 
+                                On mobile, standard pattern is a search ICON that toggles input, or putting input in a second row.
+                                UnifiedHeader renders children in a flex row.
+                                If I make it w-full, it breaks the row.
+                                Let's keep it hidden on tiny screens and add a toggle button?
+                                Or just allow it to squeeze?
+                                Let's try to make it an icon on mobile that expands.
+                            */}
+                             <div className="hidden sm:block relative">
+                                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                <input
+                                    type="text"
+                                    placeholder="タスク検索..."
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    className="w-48 lg:w-64 pl-11 pr-4 py-2 bg-black/20 border border-white/10 rounded-full text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:bg-zinc-900 focus:ring-1 focus:ring-indigo-500/50 transition-all"
+                                />
+                             </div>
                         </div>
 
                         <button
@@ -567,6 +602,13 @@ export default function GlobalTodoClient({
                         </button>
                         
                         <button
+                            onClick={() => setIsFilterDrawerOpen(true)}
+                            className="lg:hidden p-2 rounded-full bg-zinc-900/50 border border-white/5 text-zinc-400 hover:text-white"
+                        >
+                            <Filter size={18} />
+                        </button>
+                        
+                        <button
                             onClick={() => setShowAddTask(true)}
                             className="bg-white text-black p-2 rounded-full shadow-lg hover:bg-zinc-200 transition-all"
                         >
@@ -574,9 +616,9 @@ export default function GlobalTodoClient({
                         </button>
                     </UnifiedHeader>
 
-                    {/* Filter Bar (Hidden on Insights) */}
+                    {/* Filter Bar (Hidden on Mobile V2, shown on Desktop) */}
                     {viewMode !== 'insights' ? (
-                    <div className="px-6 py-3 border-t border-white/5 bg-zinc-900/30 flex flex-wrap items-center gap-4 lg:gap-6">
+                    <div className="hidden lg:flex px-6 py-3 border-t border-white/5 bg-zinc-900/30 flex-wrap items-center gap-4 lg:gap-6">
                         
                         {/* Assignee Filter */}
                         <div className="relative group">
@@ -756,9 +798,120 @@ export default function GlobalTodoClient({
                 </div>
             </header>
 
+            {/* Mobile Filter Drawer */}
+            {isFilterDrawerOpen && (
+                <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm animate-in fade-in" onClick={() => setIsFilterDrawerOpen(false)}>
+                    <div className="w-full bg-[#0F0F12] border-t border-white/10 rounded-t-3xl p-6 shadow-2xl relative max-h-[85vh] overflow-y-auto" onClick={e => e.stopPropagation()}>
+                        <div className="w-12 h-1.5 bg-zinc-800 rounded-full mx-auto mb-6" />
+                        
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                                <Filter size={18} className="text-indigo-400" /> フィルター設定
+                            </h3>
+                            <button onClick={() => {
+                                setSearchQuery("");
+                                setStatusFilter("all");
+                                setPriorityFilter("all");
+                                setSelectedAssignees([]);
+                                setDateRangeStart("");
+                                setDateRangeEnd("");
+                            }} className="text-xs text-zinc-500 underline">リセット</button>
+                        </div>
+
+                        <div className="space-y-6">
+                            {/* Search */}
+                            <div>
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">キーワード検索</label>
+                                <div className="relative">
+                                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
+                                    <input
+                                        type="text"
+                                        placeholder="タスク検索..."
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                        className="w-full pl-10 pr-4 py-3 bg-zinc-900 border border-white/10 rounded-xl text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Status */}
+                            <div>
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">ステータス</label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {['all', 'todo', 'in-progress', 'done'].map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => setStatusFilter(s)}
+                                            className={`py-2 rounded-lg text-xs font-bold transition-all uppercase border ${statusFilter === s ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-zinc-900 border-white/5 text-zinc-500'}`}
+                                        >
+                                            {s === 'all' ? '全て' : s === 'in-progress' ? '進行中' : s === 'todo' ? '未着手' : '完了'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Priority */}
+                            <div>
+                                <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">優先度</label>
+                                <div className="grid grid-cols-4 gap-2">
+                                    {['all', 'high', 'medium', 'low'].map(p => (
+                                        <button
+                                            key={p}
+                                            onClick={() => setPriorityFilter(p)}
+                                            className={`py-2 rounded-lg text-xs font-bold transition-all uppercase border ${priorityFilter === p ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-zinc-900 border-white/5 text-zinc-500'}`}
+                                        >
+                                            {p === 'all' ? '全て' : p === 'high' ? '高' : p === 'medium' ? '中' : '低'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Sort & Group */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">並び替え</label>
+                                    <div className="bg-zinc-900 border border-white/10 rounded-xl p-1 flex">
+                                        <select 
+                                            value={sortBy}
+                                            onChange={(e) => setSortBy(e.target.value as SortBy)}
+                                            className="w-full bg-transparent text-xs text-white p-2 focus:outline-none"
+                                        >
+                                            <option value="createdAt">作成日</option>
+                                            <option value="dueDate">期限</option>
+                                            <option value="priority">優先度</option>
+                                            <option value="title">タイトル</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-[10px] font-bold text-zinc-500 uppercase mb-2 block">グループ化</label>
+                                    <div className="bg-zinc-900 border border-white/10 rounded-xl p-1 flex">
+                                        <select 
+                                            value={groupBy}
+                                            onChange={(e) => setGroupBy(e.target.value as GroupBy)}
+                                            className="w-full bg-transparent text-xs text-white p-2 focus:outline-none"
+                                        >
+                                            <option value="none">なし</option>
+                                            <option value="thread">スレッド</option>
+                                            <option value="assignee">担当者</option>
+                                            <option value="status">ステータス</option>
+                                            <option value="priority">優先度</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button onClick={() => setIsFilterDrawerOpen(false)} className="w-full py-4 bg-zinc-800 rounded-xl text-sm font-bold text-white mt-4">
+                                閉じる
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Main Content */}
-            <main className="flex-1 overflow-auto bg-[#050510] relative custom-scrollbar">
-                <div className="max-w-[1800px] mx-auto p-6">
+            <main className="flex-1 overflow-auto bg-[#050510] relative custom-scrollbar overflow-x-hidden">
+                <div className="max-w-[1800px] mx-auto p-3 md:p-6">
                     
                     {/* LIST VIEW */}
                     {viewMode === 'list' && (
@@ -795,7 +948,7 @@ export default function GlobalTodoClient({
 
                     {/* CALENDAR VIEW */}
                     {viewMode === 'calendar' && (
-                        <div className="h-[calc(100vh-250px)] flex flex-col gap-4">
+                        <div className="h-[calc(100vh-140px)] md:h-[calc(100vh-160px)] flex flex-col gap-4">
                             <div className="flex items-center justify-between">
                                 <h2 className="text-2xl font-bold text-white flex items-center gap-3">
                                     <span className="bg-gradient-to-tr from-indigo-500 to-purple-500 w-8 h-8 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
@@ -923,7 +1076,7 @@ export default function GlobalTodoClient({
 
                                         {expandedWorkload.includes(w.id) && (
                                             <div className="mt-4 pt-4 border-t border-white/5 space-y-2 animate-in slide-in-from-top-2">
-                                                {w.tasks.slice(0, 5).map(t => (
+                                                {w.tasks.slice(0, showAllTasksIds.includes(w.id) ? undefined : 5).map(t => (
                                                     <div key={t.id} className="flex items-center justify-between text-xs p-2 hover:bg-white/5 rounded-lg cursor-pointer" onClick={() => setEditingTask(t)}>
                                                         <span className="truncate max-w-[70%] text-zinc-300">{t.title}</span>
                                                         <div className="flex items-center gap-2">
@@ -932,9 +1085,12 @@ export default function GlobalTodoClient({
                                                     </div>
                                                 ))}
                                                 {w.tasks.length > 5 && (
-                                                    <div className="text-center text-[10px] text-zinc-600 mt-2">
-                                                        +{w.tasks.length - 5} more
-                                                    </div>
+                                                    <button
+                                                        onClick={() => setShowAllTasksIds(prev => prev.includes(w.id) ? prev.filter(id => id !== w.id) : [...prev, w.id])}
+                                                        className="w-full text-center text-[10px] text-zinc-500 hover:text-zinc-300 mt-2 py-1 rounded hover:bg-white/5 transition-colors"
+                                                    >
+                                                        {showAllTasksIds.includes(w.id) ? '隠す' : `+${w.tasks.length - 5} more`}
+                                                    </button>
                                                 )}
                                             </div>
                                         )}

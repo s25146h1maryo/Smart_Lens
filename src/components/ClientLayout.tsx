@@ -26,7 +26,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                     ) : (
                         <div className="flex min-h-screen">
                             <GlobalSidebar />
-                            <div className="flex-1 pl-[72px]">
+                            <div className="flex-1 pl-0 md:pl-[72px]">
                                 {children}
                             </div>
                         </div>

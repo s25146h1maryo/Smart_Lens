@@ -189,7 +189,7 @@ export default function UserManagementClient({ users, currentUserRole }: { users
                     {/* Search bar could go here */}
                 </div>
                
-                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-hidden">
+                <div className="bg-zinc-900/50 border border-white/5 rounded-2xl overflow-x-auto">
                     <table className="w-full text-left text-sm">
                         <thead className="bg-black/20 text-zinc-400">
                             <tr>

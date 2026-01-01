@@ -139,10 +139,10 @@ export default function InsightsView({ tasks, onTaskClick }: InsightsViewProps) 
     };
 
     return (
-        <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4">
+        <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-4 w-full overflow-x-hidden">
             
             {/* KPI Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
                 <KPICard 
                     icon={<CheckCircle2 className="text-emerald-500" size={24} />}
                     label="プロジェクト完了率"
@@ -423,16 +423,16 @@ function KPICard({icon, label, value, sub, color, labelOverride, onClick}: {icon
     return (
         <div 
             onClick={onClick}
-            className={`bg-zinc-900/40 border border-white/5 p-5 rounded-3xl relative overflow-hidden group hover:bg-zinc-900/60 transition-colors h-full ${onClick ? 'cursor-pointer' : ''}`}
+            className={`bg-zinc-900/40 border border-white/5 p-4 md:p-5 rounded-2xl md:rounded-3xl relative overflow-hidden group hover:bg-zinc-900/60 transition-colors h-full ${onClick ? 'cursor-pointer' : ''}`}
         >
-           <div className="flex items-center gap-3 mb-3">
-                <div className={`p-2 rounded-xl bg-${color}-500/10`}>
+           <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-3">
+                <div className={`p-1.5 md:p-2 rounded-xl bg-${color}-500/10`}>
                     {icon}
                 </div>
-                <span className="font-bold text-xs text-zinc-400 uppercase tracking-wider">{labelOverride || label}</span>
+                <span className="font-bold text-[10px] md:text-xs text-zinc-400 uppercase tracking-wider truncate">{labelOverride || label}</span>
            </div>
-           <div className="text-3xl font-black text-white mb-1">{value}</div>
-           <div className="text-[10px] text-zinc-500 font-bold">{sub}</div>
+           <div className="text-2xl md:text-3xl font-black text-white mb-1">{value}</div>
+           <div className="text-[9px] md:text-[10px] text-zinc-500 font-bold">{sub}</div>
         </div>
     );
 }

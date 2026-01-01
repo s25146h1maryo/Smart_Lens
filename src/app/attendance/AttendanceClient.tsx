@@ -93,7 +93,7 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
         <div className="flex-1 overflow-auto p-4 md:p-8 space-y-8 bg-zinc-950">
             {/* My Schedule Section */}
             <div className="bg-gradient-to-br from-indigo-900/40 to-zinc-900 border border-indigo-500/20 rounded-2xl p-6 shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none">
+                <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none hidden md:block">
                      <User size={120} />
                 </div>
                 
@@ -113,7 +113,7 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                     </div>
                 </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-7 gap-3 relative z-10">
+                <div className="grid grid-cols-7 gap-1 md:gap-3 relative z-10">
                     {dates.map(date => {
                         const dateStr = format(date, 'yyyy-MM-dd');
                         const isWeekend = date.getDay() === 0 || date.getDay() === 6;
@@ -143,8 +143,8 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                                                        e.stopPropagation();
                                                        handleStatusUpdate(date, status);
                                                    }}
-                                                   className={`
-                                                       relative w-full text-[10px] sm:text-xs py-2 px-2 rounded-lg font-bold transition-all duration-200 border cursor-pointer flex items-center justify-between group overflow-hidden
+                                                       className={`
+                                                       relative w-full text-[10px] sm:text-xs py-2 px-1 md:px-2 rounded-lg font-bold transition-all duration-200 border cursor-pointer flex items-center justify-between group overflow-hidden whitespace-nowrap
                                                        ${isSelected 
                                                            ? `${STATUS_COLORS[status]} border-white shadow-[0_0_15px_rgba(255,255,255,0.7)] ring-2 ring-white scale-[1.02] z-20` 
                                                            : 'bg-zinc-800/80 text-zinc-500 border-zinc-700/50 hover:bg-zinc-700 hover:text-zinc-300 hover:border-zinc-500 scale-100'}
@@ -191,8 +191,8 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                 </h3>
 
                 <div className="bg-zinc-900 border border-white/10 rounded-xl overflow-hidden shadow-xl">
-                    <div className="grid grid-cols-[160px_repeat(7,1fr)] bg-zinc-950/80 border-b border-white/10">
-                        <div className="p-3 text-xs font-bold text-zinc-500 uppercase tracking-wider flex items-center">Member</div>
+                    <div className="grid grid-cols-[100px_repeat(7,1fr)] md:grid-cols-[160px_repeat(7,1fr)] bg-zinc-950/80 border-b border-white/10">
+                        <div className="p-2 md:p-3 text-[10px] md:text-xs font-bold text-zinc-500 uppercase tracking-wider flex items-center">Member</div>
                         {dates.map(date => {
                              const dateStr = format(date, 'yyyy-MM-dd');
                              const isWeekend = date.getDay() === 0 || date.getDay() === 6;
@@ -225,8 +225,8 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                         {otherUsers.map(user => {
                             const userId = user.id;
                             return (
-                                <div key={userId} className="grid grid-cols-[160px_repeat(7,1fr)] border-b border-white/5 hover:bg-white/5 transition-colors">
-                                    <div className="p-3 flex items-center gap-3 border-r border-white/5">
+                                <div key={userId} className="grid grid-cols-[100px_repeat(7,1fr)] md:grid-cols-[160px_repeat(7,1fr)] border-b border-white/5 hover:bg-white/5 transition-colors">
+                                    <div className="p-2 md:p-3 flex items-center gap-2 md:gap-3 border-r border-white/5">
                                         {user.image ? (
                                             <img src={user.image} className="w-8 h-8 rounded-full border border-white/10" />
                                         ) : (
@@ -249,10 +249,11 @@ export default function AttendanceClient({ currentUser, users }: AttendanceClien
                                             <div key={dateStr} className={`border-l border-white/5 p-1 relative flex items-center justify-center ${isWeekend ? 'bg-zinc-950/30' : ''}`}>
                                                 {status ? (
                                                     <div className={`
-                                                        px-2 py-1 rounded text-[10px] font-bold shadow-sm whitespace-nowrap overflow-hidden text-ellipsis
+                                                        px-1 md:px-2 py-1 rounded text-[9px] md:text-[10px] font-bold shadow-sm whitespace-nowrap overflow-hidden text-ellipsis
                                                         ${STATUS_COLORS[status]}
                                                     `}>
-                                                        {STATUS_LABELS[status]}
+                                                        <span className="md:hidden">{STATUS_LABELS[status].substring(0, 2)}</span>
+                                                        <span className="hidden md:inline">{STATUS_LABELS[status]}</span>
                                                     </div>
                                                 ) : (
                                                     !isWeekend && <div className="w-1.5 h-1.5 rounded-full bg-zinc-800"></div>

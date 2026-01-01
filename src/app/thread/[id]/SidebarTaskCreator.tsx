@@ -59,6 +59,8 @@ export default function SidebarTaskCreator({
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [fileStats, setFileStats] = useState("");
 
+    const [uploadingCount, setUploadingCount] = useState(0);
+
     // Close select on click outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -176,12 +178,16 @@ export default function SidebarTaskCreator({
         const files = e.target.files;
         if (!files || files.length === 0) return;
 
-        Array.from(files).forEach(file => {
+        const fileArray = Array.from(files);
+        setUploadingCount(prev => prev + fileArray.length);
+
+        fileArray.forEach(file => {
             uploadFile(
                 file,
                 { threadId }, // Context for Task Upload (Task ID not yet known, but Thread ID is)
                 (attachment) => {
                     setAttachments(prev => [...prev, attachment]);
+                    setUploadingCount(prev => Math.max(0, prev - 1));
                 }
             );
         });
@@ -238,7 +244,12 @@ export default function SidebarTaskCreator({
                 startDate, endDate, dueDate,
                 assigneeIds: finalAssignees,
                 isAllDay,
-                attachments
+                attachments: attachments.map(f => ({
+                    name: f.name,
+                    driveFileId: f.driveFileId || f.id,
+                    mimeType: f.mimeType || f.type,
+                    webViewLink: f.webViewLink || f.url
+                }))
             });
 
             if (!result.success && result.error) {
@@ -507,10 +518,10 @@ export default function SidebarTaskCreator({
 
                 <button 
                     type="submit" 
-                    disabled={isSubmitting}
+                    disabled={isSubmitting || uploadingCount > 0}
                     className="mt-2 w-full rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 py-3.5 text-sm font-bold text-white shadow-lg shadow-indigo-500/20 transition-all hover:opacity-90 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                    {isSubmitting ? '作成中...' : 'タスクを作成'}
+                    {uploadingCount > 0 ? "アップロード中..." : isSubmitting ? '作成中...' : 'タスクを作成'}
                 </button>
             </form>
         </div>

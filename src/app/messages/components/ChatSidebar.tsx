@@ -140,7 +140,7 @@ export default function ChatSidebar({ users, currentUser, chats: initialChats, s
                                     <div 
                                         key={chat.id}
                                         onClick={() => navigateToChat(chat.id)}
-                                        className={`p-2 flex items-center gap-3 cursor-pointer rounded-lg transition-colors relative ${
+                                        className={`p-3 md:p-2 flex items-center gap-3 md:gap-3 cursor-pointer rounded-xl md:rounded-lg transition-colors relative ${
                                             unread ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'hover:bg-white/5'
                                         }`}
                                     >
@@ -193,7 +193,7 @@ export default function ChatSidebar({ users, currentUser, chats: initialChats, s
                                 <div 
                                     key={user.id}
                                     onClick={() => onSelectUser(user.id)}
-                                    className={`p-2 flex items-center gap-3 cursor-pointer rounded-lg transition-colors relative ${
+                                    className={`p-3 md:p-2 flex items-center gap-3 md:gap-3 cursor-pointer rounded-xl md:rounded-lg transition-colors relative ${
                                         isSelected ? 'bg-white/10' : 
                                         unread ? 'bg-indigo-500/10 hover:bg-indigo-500/20' : 'hover:bg-white/5'
                                     }`}

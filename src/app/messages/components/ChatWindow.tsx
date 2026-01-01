@@ -20,9 +20,10 @@ interface ChatWindowProps {
     isGroup?: boolean;
     users?: any[];
     participants?: string[];
+    isMobile?: boolean; // Added for V6
 }
 
-export default function ChatWindow({ currentUser, recipientUser, chatId, initialMessages, chatName, isGroup, users = [], participants = [] }: ChatWindowProps) {
+export default function ChatWindow({ currentUser, recipientUser, chatId, initialMessages, chatName, isGroup, users = [], participants = [], isMobile = false }: ChatWindowProps) {
     const [showSettings, setShowSettings] = useState(false);
     const [inputValue, setInputValue] = useState("");
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -247,6 +248,11 @@ export default function ChatWindow({ currentUser, recipientUser, chatId, initial
                 user={currentUser}
                 title={
                     <div className="flex items-center gap-3">
+                        {isMobile && (
+                             <a href="/messages" className="bg-white/10 p-2 rounded-full mr-1">
+                                 <ArrowDown className="w-5 h-5 rotate-90 text-white" />
+                             </a>
+                        )}
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-bold relative ${isGroup ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30' : 'bg-indigo-600'}`}>
                             {isGroup ? '#' : (recipientUser?.nickname?.[0] || recipientUser?.name?.[0] || "?")}
                             {!isGroup && onlineStatuses[recipientUser?.id || ''] === 'online' && (

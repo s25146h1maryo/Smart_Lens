@@ -34,15 +34,7 @@ export default function Home() {
           }}>
             SmartLens
           </h1>
-          <p style={{ 
-            fontSize: "1.1rem", 
-            color: "#d1d5db", 
-            maxWidth: "600px", 
-            lineHeight: 1.6 
-          }}>
-            Safety, Efficiency, and Intelligence combined.<br />
-            The future of organization management is here.
-          </p>
+
         </motion.div>
 
         {/* Main Action Button - Resized and Enhanced Glow */}
@@ -60,8 +52,8 @@ export default function Home() {
                 }}
                 whileTap={{ scale: 0.95 }}
                 style={{
-                  padding: "1rem 3rem", // Reduced padding
-                  fontSize: "1.25rem", // Reduced font size
+                  padding: "0.75rem 2rem", // Reduced padding
+                  fontSize: "1.0rem", // Reduced font size
                   fontWeight: "bold",
                   color: "white",
                   background: "rgba(255, 255, 255, 0.05)",
@@ -90,7 +82,7 @@ export default function Home() {
           fontSize: "0.8rem"
         }}>
           <p style={{ margin: 0 }}>v.α</p>
-          <p style={{ margin: 0 }}>Created by Kadenokoji.Ryo</p>
+          <p style={{ margin: 0 }}>Created by Ryo,Kadenokoji</p>
         </div>
 
       </main>
