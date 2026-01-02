@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useEffect } from "react";
 import GlobalSidebar from "@/components/GlobalSidebar";
 import ThreeBackground from "@/components/ThreeBackground";
 import PWAInstallGuide from "@/components/PWAInstallGuide";
@@ -11,8 +12,21 @@ import { ChatUploadProvider } from "@/app/messages/ChatUploadContext";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     
-    // Pages where Sidebar should be HIDDEN
-    const isFullScreenPage = pathname === "/" || pathname === "/login" || pathname === "/pending" || pathname === "/rejected";
+    // Pages where Sidebar should be HIDDEN (full-screen experience)
+    const isFullScreenPage = pathname === "/" || pathname === "/login" || pathname === "/pending" || pathname === "/rejected" || pathname === "/terms" || pathname === "/privacy";
+
+    // Register Service Worker for offline control
+    useEffect(() => {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js')
+                .then((registration) => {
+                    console.log('SW registered:', registration.scope);
+                })
+                .catch((error) => {
+                    console.log('SW registration failed:', error);
+                });
+        }
+    }, []);
 
     return (
         <SessionProvider>

@@ -63,7 +63,7 @@ const getCachedActiveTasks = unstable_cache(
         return tasks;
     },
     ['active_tasks_cache'],
-    { tags: ['tasks'], revalidate: 180 }
+    { tags: ['tasks'], revalidate: 30 }
 );
 
 /**
@@ -107,7 +107,7 @@ const getCachedArchivedTasks = unstable_cache(
         return tasks;
     },
     ['archived_tasks_cache'],
-    { tags: ['tasks'], revalidate: 600 }
+    { tags: ['tasks'], revalidate: 60 }
 );
 
 /**

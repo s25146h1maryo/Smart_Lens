@@ -3,8 +3,10 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import UnifiedHeader from "@/components/UnifiedHeader";
 import { updateProfile } from "@/app/actions/user";
+import { FileText, Shield } from "lucide-react";
 
 export default function SettingsPage() {
     const { data: session, update } = useSession();
@@ -93,6 +95,35 @@ export default function SettingsPage() {
 
                 <hr className="border-white/5" />
 
+                {/* Legal Section */}
+                <section>
+                    <h2 className="text-xl font-semibold text-white mb-4">法的情報</h2>
+                    <div className="grid gap-3">
+                        <Link 
+                            href="/terms" 
+                            className="flex items-center gap-3 bg-zinc-950/50 border border-white/5 rounded-xl p-4 hover:bg-zinc-900 transition-colors"
+                        >
+                            <FileText size={20} className="text-indigo-400" />
+                            <div>
+                                <div className="text-white font-medium">利用規約</div>
+                                <div className="text-xs text-zinc-500">サービス利用に関する規約</div>
+                            </div>
+                        </Link>
+                        <Link 
+                            href="/privacy" 
+                            className="flex items-center gap-3 bg-zinc-950/50 border border-white/5 rounded-xl p-4 hover:bg-zinc-900 transition-colors"
+                        >
+                            <Shield size={20} className="text-emerald-400" />
+                            <div>
+                                <div className="text-white font-medium">プライバシーポリシー</div>
+                                <div className="text-xs text-zinc-500">個人情報の取り扱いについて</div>
+                            </div>
+                        </Link>
+                    </div>
+                </section>
+
+                <hr className="border-white/5" />
+
                 {/* Account Actions */}
                 <section>
                     <h2 className="text-xl font-semibold text-red-400 mb-4">アカウント</h2>
@@ -119,3 +150,4 @@ export default function SettingsPage() {
         </div>
     );
 }
+

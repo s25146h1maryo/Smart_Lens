@@ -72,7 +72,25 @@ export default function Home() {
           </Link>
         </motion.div>
 
-        {/* Footer Info */}
+        {/* Legal Links - Bottom Left */}
+        <div style={{
+          position: "absolute",
+          bottom: "2rem",
+          left: "2rem",
+          display: "flex",
+          gap: "1.5rem",
+          color: "rgba(255, 255, 255, 0.3)",
+          fontSize: "0.75rem"
+        }}>
+          <Link href="/terms" style={{ textDecoration: "none", color: "inherit" }} className="hover:text-white/60 transition-colors">
+            利用規約
+          </Link>
+          <Link href="/privacy" style={{ textDecoration: "none", color: "inherit" }} className="hover:text-white/60 transition-colors">
+            プライバシーポリシー
+          </Link>
+        </div>
+
+        {/* Footer Info - Bottom Right */}
         <div style={{
           position: "absolute",
           bottom: "2rem",
@@ -88,3 +106,4 @@ export default function Home() {
       </main>
   );
 }
+

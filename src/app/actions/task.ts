@@ -82,9 +82,24 @@ export async function createTask(
             }
         }
 
-        // Save the task first
         await taskRef.set(newTask);
         await logger.info("Saved task", { taskId: newTask.id, title });
+
+        // --- Send push notification to assignees ---
+        if (newTask.assigneeIds && newTask.assigneeIds.length > 0) {
+            try {
+                const { sendPushNotification } = await import("@/lib/push");
+                await sendPushNotification(
+                    newTask.assigneeIds,
+                    "新しいタスクが割り当てられました",
+                    title,
+                    `/thread/${threadId}`,
+                    `task-${newTask.id}`
+                );
+            } catch (pushErr) {
+                await logger.warn("Push notification failed", { error: pushErr });
+            }
+        }
 
         // --- SYNCHRONOUS File Move (with delay for permission propagation) ---
         if (driveFolderId && attachmentsToMove.length > 0 && accessToken) {
