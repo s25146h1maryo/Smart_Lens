@@ -52,9 +52,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="google-site-verification" content="T-kSMcQeQ7Okxyr3b24mvT8wfjj1m9C7KdkGhmZRf3k" />
-        {/* Google Analytics - Manual Injection for Verification */}
+        {/* Google Analytics - Manual Injection (Top of Head) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-8J4WFQMKLQ"></script>
         <script
           dangerouslySetInnerHTML={{
@@ -66,6 +64,8 @@ export default function RootLayout({
             `,
           }}
         />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="google-site-verification" content="T-kSMcQeQ7Okxyr3b24mvT8wfjj1m9C7KdkGhmZRf3k" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} bg-zinc-950 text-zinc-100`}>
         <ClientLayout>
