@@ -30,9 +30,6 @@ export const metadata: Metadata = {
   formatDetection: {
     telephone: false,
   },
-  verification: {
-    google: "T-kSMcQeQ7Okxyr3b24mvT8wfjj1m9C7KdkGhmZRf3k",
-  },
 };
 
 export const viewport: Viewport = {
@@ -53,6 +50,7 @@ export default function RootLayout({
     <html lang="ja">
       <head>
         <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="google-site-verification" content="T-kSMcQeQ7Okxyr3b24mvT8wfjj1m9C7KdkGhmZRf3k" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} bg-zinc-950 text-zinc-100`}>
         <ClientLayout>
