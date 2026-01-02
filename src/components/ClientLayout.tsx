@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import GlobalSidebar from "@/components/GlobalSidebar";
 import ThreeBackground from "@/components/ThreeBackground";
+import PWAInstallGuide from "@/components/PWAInstallGuide";
 import { SessionProvider } from "next-auth/react";
 import { UploadProvider } from "@/app/drive/UploadContext";
 import { ChatUploadProvider } from "@/app/messages/ChatUploadContext";
@@ -31,8 +32,11 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
                             </div>
                         </div>
                     )}
+                    {/* PWA Installation Guide (shows on first visit for mobile) */}
+                    <PWAInstallGuide />
                 </ChatUploadProvider>
             </UploadProvider>
         </SessionProvider>
     );
 }
+

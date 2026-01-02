@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getAllTasks, getAllThreads, getWorkloadData } from "@/app/actions/global_todo";
-import { getCachedUsers } from "@/app/actions/user";
+import { getCachedUsers, getUserGlobalTodoAccess } from "@/app/actions/user";
 import { getExternalCalendarEvents } from "@/app/actions/externalCalendar";
 import GlobalTodoClient from "./GlobalTodoClient";
 
@@ -12,6 +12,28 @@ export default async function GlobalTodoPage() {
     if (!session?.user) redirect("/login");
     if ((session.user as any).role === 'PENDING') redirect("/pending");
 
+    // 1. Check access FIRST before loading heavy data
+    const canAccess = await getUserGlobalTodoAccess(session.user.id);
+
+    // 2. If no access, pass empty data to client (no heavy fetch)
+    if (!canAccess) {
+        return (
+            <GlobalTodoClient 
+                initialTasks={[]}
+                threads={[]}
+                users={[]}
+                workload={{}}
+                schoolEvents={[]}
+                currentUser={{
+                    id: session.user.id,
+                    name: session.user.name || "User",
+                    allowGlobalTodo: false
+                }}
+            />
+        );
+    }
+
+    // 3. Only fetch heavy data if access is granted
     const [tasks, threads, users, workload, schoolEvents] = await Promise.all([
         getAllTasks(),
         getAllThreads(),
@@ -29,8 +51,10 @@ export default async function GlobalTodoPage() {
             schoolEvents={schoolEvents}
             currentUser={{
                 id: session.user.id,
-                name: session.user.name || "User"
+                name: session.user.name || "User",
+                allowGlobalTodo: true
             }}
         />
     );
 }
+

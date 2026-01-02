@@ -142,7 +142,8 @@ export const getCachedUsersWithEmail = unstable_cache(
                 email: data.email,  // Included for admin use
                 image: data.image,
                 jobTitle: data.jobTitle,
-                role: data.role
+                role: data.role,
+                allowGlobalTodo: data.allowGlobalTodo !== false // Default true
             };
         });
     },
@@ -339,5 +340,43 @@ export async function updateUserJobTitle(userId: string, newJobTitle: string) {
     } catch (e) {
         console.error("Update JobTitle Failed", e);
         return { success: false, message: "Failed to update job title" };
+    }
+}
+
+export async function updateUserGlobalTodoAccess(userId: string, allow: boolean) {
+    const session = await auth();
+    if (!session?.user?.id) return { success: false, message: "Unauthorized" };
+
+    const executorDoc = await db.collection("users").doc(session.user.id).get();
+    const executorRole = executorDoc.data()?.role;
+
+    if (executorRole !== "ROOT" && executorRole !== "ADMIN") {
+        return { success: false, message: "Forbidden" };
+    }
+
+    try {
+        await db.collection("users").doc(userId).set({
+            allowGlobalTodo: allow,
+            updatedAt: Date.now()
+        }, { merge: true });
+        
+        revalidatePath("/admin/users");
+        revalidatePath("/todo");
+        return { success: true };
+    } catch (e) {
+        console.error("Update Global Todo Access Failed", e);
+        return { success: false, message: "Failed to update access" };
+    }
+}
+
+export async function getUserGlobalTodoAccess(userId: string) {
+    try {
+        const doc = await db.collection("users").doc(userId).get();
+        if (!doc.exists) return false;
+        // Default to TRUE if undefined
+        return doc.data()?.allowGlobalTodo !== false;
+    } catch (e) {
+        console.error("Get Access Failed", e);
+        return false;
     }
 }

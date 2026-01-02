@@ -6,6 +6,8 @@ import CreateGroupModal from "./CreateGroupModal";
 import { useRouter } from "next/navigation";
 import { useChatListUpdates } from "@/hooks/useRTDB";
 
+import { Link as LinkIcon, Lock } from "lucide-react";
+
 interface ChatSidebarProps {
     users: any[];
     currentUser: any;
@@ -109,15 +111,18 @@ export default function ChatSidebar({ users, currentUser, chats: initialChats, s
 
     return (
         <div className="w-full md:w-80 border-r border-white/10 flex flex-col bg-zinc-900/50 backdrop-blur-md h-full">
-            <div className="p-4 border-b border-white/10 space-y-3">
+            <div className="pl-14 md:pl-4 p-4 border-b border-white/10 space-y-3">
                 <div className="flex items-center justify-between">
                     <h2 className="text-lg font-bold text-white">メッセージ</h2>
-                    <button 
-                        onClick={() => setShowGroupModal(true)}
-                        className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded transition-colors"
-                    >
-                        + グループ作成
-                    </button>
+                    {/* V12.5: Hide Create Group for non-admins */ }
+                    {(currentUser.role === 'ADMIN' || currentUser.role === 'ROOT' || currentUser.role === 'TEACHER') && (
+                        <button 
+                            onClick={() => setShowGroupModal(true)}
+                            className="text-xs bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded transition-colors"
+                        >
+                            + グループ作成
+                        </button>
+                    )}
                 </div>
                 <input 
                     type="text" 
@@ -154,12 +159,13 @@ export default function ChatSidebar({ users, currentUser, chats: initialChats, s
                                                 ? 'bg-indigo-500/30 text-indigo-200 border-indigo-500/50' 
                                                 : 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
                                         }`}>
-                                            #
+                                            {chat.threadId ? <LinkIcon size={12} className="text-white"/> : '#'}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex justify-between items-baseline">
                                                 <h3 className={`font-medium truncate ${unread ? 'text-white' : 'text-zinc-200'}`}>
                                                     {chat.name}
+                                                    {chat.threadId && <LinkIcon size={10} className="ml-1 text-zinc-500 inline-block align-middle" />}
                                                 </h3>
                                                 <span className={`text-xs ${unread ? 'text-indigo-400' : 'text-zinc-500'}`}>
                                                     {formatDateTime(chat.updatedAt)}

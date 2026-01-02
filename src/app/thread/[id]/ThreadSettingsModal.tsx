@@ -209,8 +209,8 @@ export default function ThreadSettingsModal({ thread, users, currentUserRole, on
                                                 key={mid} 
                                                 onClick={async () => {
                                                     // Navigate to DM with this user
-                                                    const dmId = await getDmId(mid);
-                                                    router.push(`/messages?chat=${dmId}`);
+                                                    // V12.5: Faster navigation using uid param
+                                                    router.push(`/messages?uid=${mid}`);
                                                 }}
                                                 className="flex items-center justify-between rounded-xl bg-zinc-900/30 border border-white/5 p-3 cursor-pointer hover:bg-zinc-800/50 hover:border-indigo-500/20 transition-all group"
                                             >

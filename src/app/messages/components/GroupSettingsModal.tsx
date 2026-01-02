@@ -4,7 +4,7 @@ import { useState } from "react";
 import { addMembersToGroup, leaveGroup, updateGroup, kickMember, deleteGroup } from "@/app/actions/chat";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Trash2, UserMinus, LogOut, UserPlus, Users, Settings } from "lucide-react";
+import { Trash2, UserMinus, LogOut, UserPlus, Users, Settings, Lock, MessageCircle } from "lucide-react";
 
 interface GroupSettingsModalProps {
     users: any[];
@@ -12,9 +12,10 @@ interface GroupSettingsModalProps {
     currentName: string;
     currentParticipants: string[];
     onClose: () => void;
+    threadId?: string;
 }
 
-export default function GroupSettingsModal({ users, chatId, currentName, currentParticipants, onClose }: GroupSettingsModalProps) {
+export default function GroupSettingsModal({ users, chatId, currentName, currentParticipants, onClose, threadId }: GroupSettingsModalProps) {
     const [name, setName] = useState(currentName);
     const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
     const [isAdding, setIsAdding] = useState(false);
@@ -130,20 +131,31 @@ export default function GroupSettingsModal({ users, chatId, currentName, current
 
                 {/* Name Edit */}
                 <div className="space-y-2">
-                    <label className="text-xs text-zinc-500 uppercase font-bold">グループ名</label>
-                    <div className="flex gap-2">
+                    <label className="text-xs text-zinc-500 uppercase font-bold flex items-center justify-between">
+                        グループ名
+                        {threadId && <span className="flex items-center gap-1 text-[10px] text-amber-500"><Lock size={10} /> スレッド連動中 (変更不可)</span>}
+                    </label>
+                    <div className="flex gap-2 relative">
                         <input 
-                            className="flex-1 bg-zinc-800 border border-white/10 rounded-lg px-3 py-2 text-white"
+                            className={`flex-1 bg-zinc-800 border ${threadId ? 'border-amber-500/30 text-zinc-400' : 'border-white/10 text-white'} rounded-lg px-3 py-2`}
                             value={name}
                             onChange={e => setName(e.target.value)}
+                            disabled={!!threadId}
                         />
-                        <button 
-                            onClick={handleUpdateName}
-                            disabled={name === currentName || isLoading}
-                            className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm disabled:opacity-50"
-                        >
-                            保存
-                        </button>
+                         {!threadId && (
+                            <button 
+                                onClick={handleUpdateName}
+                                disabled={name === currentName || isLoading}
+                                className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm disabled:opacity-50"
+                            >
+                                保存
+                            </button>
+                        )}
+                        {threadId && (
+                            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                <Lock size={14} className="text-amber-500/50" />
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -157,23 +169,34 @@ export default function GroupSettingsModal({ users, chatId, currentName, current
                              const isCurrentUser = u.id === session?.user?.id;
                              return (
                                  <div key={u.id} className="text-sm text-zinc-300 flex items-center justify-between p-1.5 rounded hover:bg-white/5">
-                                     <div className="flex items-center gap-2">
-                                         <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px]">
+                                     <div className="flex items-center gap-2 flex-1 min-w-0">
+                                         <div className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] shrink-0">
                                              {u.nickname?.[0] || u.name?.[0]}
                                          </div>
-                                         <span>{u.nickname || u.name}</span>
-                                         {isCurrentUser && <span className="text-[10px] text-zinc-500">(あなた)</span>}
+                                         <span className="truncate">{u.nickname || u.name}</span>
+                                         {isCurrentUser && <span className="text-[10px] text-zinc-500 shrink-0">(あなた)</span>}
                                      </div>
-                                     {isAdmin && !isCurrentUser && (
-                                         <button
-                                             onClick={() => handleKick(u.id, u.nickname || u.name)}
-                                             disabled={isLoading}
-                                             className="p-1 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors"
-                                             title="メンバーを削除"
-                                         >
-                                             <UserMinus size={14} />
-                                         </button>
-                                     )}
+                                     <div className="flex items-center gap-1">
+                                        {!isCurrentUser && (
+                                            <button
+                                                onClick={() => router.push(`/messages?uid=${u.id}`)}
+                                                className="p-1.5 text-zinc-400 hover:text-white hover:bg-white/10 rounded transition-colors"
+                                                title="メッセージを送る"
+                                            >
+                                                <MessageCircle size={14} />
+                                            </button>
+                                        )}
+                                        {isAdmin && !isCurrentUser && (
+                                            <button
+                                                onClick={() => handleKick(u.id, u.nickname || u.name)}
+                                                disabled={isLoading || !!threadId} // Block kick if thread linked (as per server logic, and UI consistency)
+                                                className="p-1.5 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                                                title={threadId ? "スレッド連動中は削除不可" : "メンバーを削除"}
+                                            >
+                                                <UserMinus size={14} />
+                                            </button>
+                                        )}
+                                     </div>
                                  </div>
                              );
                          })}
@@ -181,7 +204,7 @@ export default function GroupSettingsModal({ users, chatId, currentName, current
                 </div>
 
                 {/* Add Members - ADMIN+ only */}
-                {isAdmin && (
+                {isAdmin && !threadId && (
                     !isAdding ? (
                         <button 
                             onClick={() => setIsAdding(true)}

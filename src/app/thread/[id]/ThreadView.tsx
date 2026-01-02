@@ -9,7 +9,9 @@ import TaskBoard from "./TaskBoard";
 import SidebarTaskCreator from "./SidebarTaskCreator";
 import ArchivedTasksModal from "./ArchivedTasksList";
 import ThreadSettingsModal from "./ThreadSettingsModal";
-import { Settings, ExternalLink, Archive } from "lucide-react";
+import { Settings, ExternalLink, Archive, MessageCircle, Users } from "lucide-react";
+import { getDmId } from "@/app/actions/chat";
+import { useRouter } from "next/navigation";
 
 // Re-define User interface locally to match what page.tsx passes or import from SidebarTaskCreator if exported
 // Ideally we should export it from types or user actions, but for now copying is safe
@@ -18,6 +20,24 @@ export interface UIUser {
     name: string;
     image?: string;
     nickname?: string;
+}
+
+// V12: Helper component for member DM quick access
+function MemberDmLink({ userId, name }: { userId: string; name: string }) {
+    const router = useRouter();
+    const handleClick = async () => {
+        // V12.5: Faster navigation using uid param (handled by MessagesPage)
+        router.push(`/messages?uid=${userId}`);
+    };
+    return (
+        <button 
+            onClick={handleClick}
+            className="shrink-0 px-3 py-1.5 rounded-lg bg-zinc-800/80 border border-white/5 text-xs text-zinc-400 hover:text-white hover:bg-zinc-700 transition-all truncate max-w-[100px]"
+            title={name}
+        >
+            {name}
+        </button>
+    );
 }
 
 interface ThreadViewProps {
@@ -64,15 +84,35 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
                      </div>
                 </div>
 
+                {/* Quick Access Links - Member DMs (Scrollable) */}
+                <div className="relative hidden md:flex items-center gap-2 z-10 flex-1 max-w-[50vw] px-4 overflow-hidden">
+                    {/* Group Chat Link */}
+                    <Link 
+                        href={`/messages?thread=${thread.id}`}
+                        className="shrink-0 flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 text-sm font-bold hover:bg-indigo-500/20 transition-all whitespace-nowrap"
+                    >
+                        <MessageCircle size={16} />
+                        グループチャット
+                    </Link>
+                    {/* Member Links (Scrollable) */}
+                    <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide w-full">
+                        {users.map(user => (
+                            <MemberDmLink key={user.id} userId={user.id} name={user.nickname || user.name} />
+                        ))}
+                    </div>
+                </div>
+
                 <div className="relative flex items-center gap-2 md:gap-3 z-10 shrink-0">
                      {/* Settings Trigger */}
-                    <button 
-                        onClick={() => setIsSettingsOpen(true)}
-                        className="h-8 w-8 md:h-10 md:w-10 flex items-center justify-center rounded-lg md:rounded-xl bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all active:scale-95"
-                    >
-                        <Settings size={16} className="md:hidden"/>
-                        <Settings size={20} className="hidden md:block"/>
-                    </button>
+                    {(currentUserRole === 'ADMIN' || currentUserRole === 'ROOT' || currentUserRole === 'TEACHER') && (
+                        <button 
+                            onClick={() => setIsSettingsOpen(true)}
+                            className="h-8 w-8 md:h-10 md:w-10 flex items-center justify-center rounded-lg md:rounded-xl bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white border border-white/5 transition-all active:scale-95"
+                        >
+                            <Settings size={16} className="md:hidden"/>
+                            <Settings size={20} className="hidden md:block"/>
+                        </button>
+                    )}
                 </div>
             </header>
 

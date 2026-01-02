@@ -11,7 +11,7 @@ import {
     Search, Filter, Calendar, AlertCircle, CheckCircle2, 
     Clock, BarChart3, UserCheck, Plus, X, ChevronRight,
     LayoutList, Kanban, SlidersHorizontal, ArrowUpDown, Layers,
-    Briefcase, ChevronDown, Sparkles, User, Check, Paperclip, FileIcon, Loader2
+    Briefcase, ChevronDown, Sparkles, User, Check, Paperclip, FileIcon, Loader2, Lock
 } from "lucide-react";
 import EditTaskModal from "@/app/components/EditTaskModal";
 import CalendarView from "./components/CalendarView";
@@ -27,7 +27,7 @@ interface GlobalTodoClientProps {
     users: any[];
     workload: any;
     schoolEvents?: any[];
-    currentUser: { id: string; name: string };
+    currentUser: { id: string; name: string; allowGlobalTodo?: boolean };
 }
 
 type ViewMode = 'list' | 'board' | 'workload' | 'calendar' | 'insights';
@@ -42,6 +42,29 @@ export default function GlobalTodoClient({
     schoolEvents = [],
     currentUser 
 }: GlobalTodoClientProps) {
+    // Access Check
+    if (currentUser.allowGlobalTodo === false) {
+        return (
+            <div className="min-h-screen bg-zinc-950 text-white flex flex-col font-sans">
+                <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/20">
+                    <div className="max-w-[1800px] mx-auto">
+                        <UnifiedHeader title="Global Todo" user={currentUser} className="px-6 py-2 !mb-0" />
+                    </div>
+                </header>
+                <div className="flex-1 flex flex-col items-center justify-center p-8 text-center animate-in fade-in">
+                    <div className="w-24 h-24 rounded-full bg-zinc-900 border border-white/5 flex items-center justify-center mb-6 shadow-2xl">
+                        <Lock size={40} className="text-zinc-500" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2">アクセス権限がありません</h2>
+                    <p className="text-zinc-400 max-w-md loading-relaxed">
+                        このページへのアクセスは制限されています。<br/>
+                        管理者にお問い合わせください。
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     // --- State ---
     const [tasks, setTasks] = useState(initialTasks);
     
@@ -911,7 +934,11 @@ export default function GlobalTodoClient({
 
             {/* Main Content */}
             <main className="flex-1 overflow-auto bg-[#050510] relative custom-scrollbar overflow-x-hidden">
-                <div className="max-w-[1800px] mx-auto p-3 md:p-6">
+                <div className={`${
+                    viewMode === 'board' 
+                        ? 'w-full px-3 md:px-6 py-3 md:py-6' 
+                        : 'max-w-[1800px] mx-auto p-3 md:p-6'
+                }`}>
                     
                     {/* LIST VIEW */}
                     {viewMode === 'list' && (
@@ -934,7 +961,7 @@ export default function GlobalTodoClient({
 
                     {/* BOARD VIEW */}
                     {viewMode === 'board' && (
-                        <div className="h-[calc(100vh-250px)]">
+                        <div className="h-[calc(100vh-200px)] w-full">
                             <BoardView 
                                 tasks={sortedTasks} 
                                 setTasks={setTasks} 

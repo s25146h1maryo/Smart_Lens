@@ -44,7 +44,7 @@ export default function DriveClientWrapper({ initialItems, breadcrumbs, folderId
     return (
         <div>
             {/* Mobile Navigation (Switch Mode) */ }
-            <div className="md:hidden flex items-center gap-2 mb-4 bg-zinc-900/50 p-1 rounded-xl border border-white/5">
+            <div className="md:hidden flex items-center gap-2 mb-4 bg-zinc-900/50 p-1 rounded-xl border border-white/5 ml-12">
                 <Link 
                     href="/drive" 
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isShared ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500'}`}

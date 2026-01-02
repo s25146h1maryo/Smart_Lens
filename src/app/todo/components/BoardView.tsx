@@ -94,10 +94,17 @@ function SortableTask({ task, users, onEdit, isMobile }: { task: TaskWithThread,
                 
                 {/* Date Logic */}
                 <div className="flex items-center gap-2 mt-2 text-[10px]">
-                     {task.dueDate && (
-                        <div className={`flex items-center gap-1 ${task.status !== 'done' && new Date(task.dueDate).getTime() < Date.now() ? 'text-red-400' : 'text-zinc-500'}`}>
-                            <AlertCircle size={10} />
-                            <span>{format(new Date(task.dueDate), "M/d", { locale: ja })}</span>
+                     {(task.startDate || task.dueDate) && (
+                        <div className={`flex items-center gap-1 ${task.status !== 'done' && task.dueDate && new Date(task.dueDate).getTime() < Date.now() ? 'text-red-400' : 'text-zinc-500'}`}>
+                            <CalendarDays size={10} />
+                            <span>
+                                {task.startDate && task.dueDate 
+                                    ? `${format(new Date(task.startDate), "M/d", { locale: ja })} ~ ${format(new Date(task.dueDate), "M/d", { locale: ja })}`
+                                    : task.dueDate 
+                                        ? format(new Date(task.dueDate), "M/d", { locale: ja })
+                                        : format(new Date(task.startDate!), "M/d", { locale: ja })
+                                }
+                            </span>
                         </div>
                      )}
                 </div>
@@ -311,7 +318,7 @@ export default function BoardView({ tasks, setTasks, users, threads, onEdit, gro
       }
       
       return (
-          <div ref={setNodeRef} className="flex-1 w-full md:w-auto h-full md:min-w-[320px]">
+          <div ref={setNodeRef} className="flex-1 min-w-[300px] h-full">
               <Column id={`col-${val}`} tasks={columnTasks} label={label} users={users} onEdit={onEdit} isMobile={isMobile} />
           </div>
       );
@@ -368,7 +375,7 @@ export default function BoardView({ tasks, setTasks, users, threads, onEdit, gro
                 )}
           </div>
 
-          <div className="flex gap-6 h-full md:overflow-x-auto pb-4 scrollbar-hide">
+          <div className="flex gap-6 h-full w-full md:overflow-x-auto pb-4 scrollbar-hide">
               {/* Mobile: Show Active Tab Column Only */}
               <div className="md:hidden w-full h-full">
                   {mode === 'status' && (
@@ -386,7 +393,7 @@ export default function BoardView({ tasks, setTasks, users, threads, onEdit, gro
               </div>
 
               {/* Desktop: Show All Columns */}
-              <div className="hidden md:flex gap-6 h-full">
+              <div className="hidden md:flex flex-1 gap-6 h-full w-full">
                   {mode === 'status' && (
                       <>
                         <DroppableColumn val="todo" label="未着手" />

@@ -17,6 +17,7 @@ interface MessagesClientProps {
     chatName?: string;
     isGroup?: boolean;
     participants?: string[];
+    threadId?: string;
 }
 
 export default function MessagesLayout({ 
@@ -29,7 +30,8 @@ export default function MessagesLayout({
     initialMessages,
     chatName,
     isGroup,
-    participants
+    participants,
+    threadId
 }: MessagesClientProps) {
     const router = useRouter();
 
@@ -63,6 +65,7 @@ export default function MessagesLayout({
                         isGroup={isGroup}
                         users={users}
                         participants={participants}
+                        threadId={threadId}
                         isMobile={true}
                         onBack={() => router.push('/messages')}
                     />
@@ -101,6 +104,7 @@ export default function MessagesLayout({
                         isGroup={isGroup}
                         users={users}
                         participants={participants}
+                        threadId={threadId}
                     />
                 ) : (
                     <div className="h-full flex flex-col items-center justify-center text-zinc-500 bg-zinc-950/50">

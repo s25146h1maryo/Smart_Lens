@@ -6,7 +6,7 @@ import { updateChatMetadata, markAsSeen } from "@/app/actions/chat";
 import UnifiedHeader from "@/components/UnifiedHeader";
 import GroupSettingsModal from "./GroupSettingsModal";
 import { useChatMessages, usePresence, useOnlineStatus, useTyping, useChatReadStatus, sendReaction, markChatMetaAsSeen } from "@/hooks/useRTDB";
-import { Settings, ArrowDown, RotateCcw, Send, FileText, Folder, Reply } from "lucide-react";
+import { Settings, ArrowDown, RotateCcw, Send, FileText, Folder, Reply, Link as LinkIcon } from "lucide-react";
 import AttachmentButton from "./AttachmentButton";
 import DrivePickerModal from "./DrivePickerModal";
 import { shareDriveFilesToChat } from "@/app/actions/chat_drive";
@@ -22,9 +22,10 @@ interface ChatWindowProps {
     participants?: string[];
     isMobile?: boolean;
     onBack?: () => void;
+    threadId?: string;
 }
 
-export default function ChatWindow({ currentUser, recipientUser, chatId, initialMessages, chatName, isGroup, users = [], participants = [], isMobile = false, onBack }: ChatWindowProps) {
+export default function ChatWindow({ currentUser, recipientUser, chatId, initialMessages, chatName, isGroup, users = [], participants = [], isMobile = false, onBack, threadId }: ChatWindowProps) {
     const [showSettings, setShowSettings] = useState(false);
     const [inputValue, setInputValue] = useState("");
     const [replyingTo, setReplyingTo] = useState<Message | null>(null);
@@ -261,6 +262,17 @@ export default function ChatWindow({ currentUser, recipientUser, chatId, initial
                             )}
                         </div>
                         <h3 className="text-xl font-bold bg-gradient-to-r from-white to-zinc-400 bg-clip-text text-transparent">{headerTitle}</h3>
+                        
+                        {/* V12.5: Inverse Link to Thread */}
+                        {isGroup && threadId && (
+                            <a 
+                                href={`/thread/${threadId}`}
+                                className="ml-2 flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-[10px] border border-indigo-500/30 hover:bg-indigo-500/30 transition-colors"
+                            >
+                                <LinkIcon size={10} />
+                                <span>スレッドへ</span>
+                            </a>
+                        )}
                     </div>
                 }
                 subtitle={
@@ -270,7 +282,7 @@ export default function ChatWindow({ currentUser, recipientUser, chatId, initial
                 }
                 className="px-4 py-3 border-b border-white/10 bg-zinc-900/50 backdrop-blur-md z-20 relative mb-0"
             >
-                {isGroup && (
+                {isGroup && (currentUser.role === 'ADMIN' || currentUser.role === 'ROOT' || currentUser.role === 'TEACHER') && (
                     <button 
                         onClick={() => setShowSettings(true)}
                         className="p-2 text-zinc-400 hover:text-white hover:bg-white/10 rounded-full transition-colors"
@@ -567,6 +579,7 @@ export default function ChatWindow({ currentUser, recipientUser, chatId, initial
                     currentName={chatName || "Group Chat"}
                     currentParticipants={participants}
                     onClose={() => setShowSettings(false)}
+                    threadId={threadId}
                 />
             )}
 

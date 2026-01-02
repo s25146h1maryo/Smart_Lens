@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { approveUser, deleteUser, updateUserRole, rejectUser, updateUserJobTitle } from "@/app/actions/user";
-import { AlertTriangle, Users, Trash2, CheckCircle, XCircle, Ban, Edit2 } from "lucide-react";
+import { approveUser, deleteUser, updateUserRole, rejectUser, updateUserJobTitle, updateUserGlobalTodoAccess } from "@/app/actions/user";
+import { AlertTriangle, Users, Trash2, CheckCircle, XCircle, Ban, Edit2, ShieldAlert, ShieldCheck } from "lucide-react";
 
 interface User {
     id: string;
@@ -11,6 +11,7 @@ interface User {
     image?: string;
     jobTitle?: string;
     role?: string;
+    allowGlobalTodo?: boolean;
 }
 
 export default function UserManagementClient({ users, currentUserRole }: { users: User[], currentUserRole: string }) {
@@ -91,6 +92,20 @@ export default function UserManagementClient({ users, currentUserRole }: { users
             setUserList(prev => prev.map(u => u.id === uid ? { ...u, jobTitle: newJobTitle || "未設定" } : u));
         } catch (e: any) {
             alert(e.message || "役職の変更に失敗しました");
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleAccessChange = async (uid: string, currentStatus: boolean | undefined) => {
+        const newStatus = currentStatus === false ? true : false; // Toggle
+        setIsSubmitting(true);
+        try {
+            const res = await updateUserGlobalTodoAccess(uid, newStatus);
+            if (!res.success) throw new Error(res.message);
+            setUserList(prev => prev.map(u => u.id === uid ? { ...u, allowGlobalTodo: newStatus } : u));
+        } catch (e: any) {
+            alert(e.message || "アクセス権の変更に失敗しました");
         } finally {
             setIsSubmitting(false);
         }
@@ -196,6 +211,7 @@ export default function UserManagementClient({ users, currentUserRole }: { users
                                 <th className="p-4 font-medium">ユーザー</th>
                                 <th className="p-4 font-medium">役職</th>
                                 <th className="p-4 font-medium">権限</th>
+                                <th className="p-4 font-medium text-center">Todoアクセス</th>
                                 <th className="p-4 font-medium text-right">操作</th>
                             </tr>
                         </thead>
@@ -236,6 +252,24 @@ export default function UserManagementClient({ users, currentUserRole }: { users
                                          `}>
                                             {user.role || "USER"}
                                          </span>
+                                    </td>
+                                    <td className="p-4 text-center">
+                                        <button
+                                            onClick={() => handleAccessChange(user.id, user.allowGlobalTodo)}
+                                            disabled={isSubmitting}
+                                            className={`
+                                                relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none
+                                                ${user.allowGlobalTodo !== false ? 'bg-indigo-600' : 'bg-zinc-700'}
+                                            `}
+                                            title={user.allowGlobalTodo !== false ? "アクセス許可中" : "アクセス制限中"}
+                                        >
+                                            <span
+                                                className={`
+                                                    inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                                                    ${user.allowGlobalTodo !== false ? 'translate-x-6' : 'translate-x-1'}
+                                                `}
+                                            />
+                                        </button>
                                     </td>
                                     <td className="p-4 text-right">
                                         {user.role !== 'ROOT' && user.role !== 'TEACHER' && (
