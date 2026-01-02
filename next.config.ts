@@ -6,7 +6,15 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '5mb', // default, we use drive direct upload for larger
     }
-  }
+  },
+  async rewrites() {
+    return [
+      {
+        source: '/google9521b8956bb3057c.html',
+        destination: '/api/google-verification',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

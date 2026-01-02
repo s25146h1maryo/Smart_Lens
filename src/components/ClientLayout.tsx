@@ -12,8 +12,14 @@ import { ChatUploadProvider } from "@/app/messages/ChatUploadContext";
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
     
-    // Pages where Sidebar should be HIDDEN (full-screen experience)
-    const isFullScreenPage = pathname === "/" || pathname === "/login" || pathname === "/pending" || pathname === "/rejected" || pathname === "/terms" || pathname === "/privacy";
+    // List of paths where Sidebar SHOULD be visible (Whitelist approach)
+    // This prevents sidebar from showing up on 404 pages or verification files
+    const sidebarPaths = [
+        '/dashboard', '/thread', '/settings', '/admin', '/messages', 
+        '/drive', '/attendance', '/calendar', '/todo', '/vote', '/profile', '/room-status'
+    ];
+
+    const showSidebar = sidebarPaths.some(path => pathname.startsWith(path));
 
     // Register Service Worker for offline control
     useEffect(() => {
@@ -32,7 +38,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         <SessionProvider>
             <UploadProvider>
                 <ChatUploadProvider>
-                    {isFullScreenPage ? (
+                    {!showSidebar ? (
                         <div style={{ width: '100vw', height: '100vh', overflow: 'hidden' }}>
                             <ThreeBackground>
                                 {children}
