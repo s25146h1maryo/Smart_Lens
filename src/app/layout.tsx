@@ -17,6 +17,11 @@ export const metadata: Metadata = {
   title: "SmartLens",
   description: "AI駆動型の教育機関向け組織運営プラットフォーム",
   manifest: "/manifest.json",
+  icons: {
+    icon: "/icons/icon-192.png",
+    shortcut: "/icons/icon-192.png",
+    apple: "/icons/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -44,7 +49,6 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192.png" />
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} bg-zinc-950 text-zinc-100`}>
