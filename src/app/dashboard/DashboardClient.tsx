@@ -847,7 +847,8 @@ export default function DashboardClient(props: DashboardClientProps) {
                         {/* New Task Button - Show on Home & Menu */}
                 {/* ... existing new task button logic likely follows ... */}
             </div>
-                </div>{/* End Main Grid */}
+                </div>{/* End Main Grid (Inner) */}
+            </div>{/* End Outer Main Grid */ }
 
             {/* Create Thread Modal - Controlled by URL param */}
             {searchParams.get('create') === 'true' && <CreateThreadModal />}
@@ -998,7 +999,6 @@ export default function DashboardClient(props: DashboardClientProps) {
                 </div>
             )}
         </div>
-        {/* End Outer Wrapper */}
-        </div>
+
     );
 }
