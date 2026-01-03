@@ -100,6 +100,8 @@ export interface DashboardData {
         endDate?: number | null;
         assigneeIds?: string[];
     }[];
+    threads: { id: string; title: string }[];
+    users: { id: string; uid: string; name: string; nickname?: string; email?: string }[];
 }
 
 /**
@@ -119,20 +121,33 @@ const getCachedDashboardData = unstable_cache(
                 tasksSnap,
                 threadsSnap,
                 roomStatusSnap,
-                chatsSnap
+                chatsSnap,
+                usersSnap
             ] = await Promise.all([
                 db.collection("tasks").get(),
                 db.collection("threads").where("status", "==", "active").get(),
                 db.collection("room_status").doc("current").get(),
-                db.collection("chats").where("participants", "array-contains", userId).get()
+                db.collection("chats").where("participants", "array-contains", userId).get(),
+                db.collection("users").where("role", "!=", "PENDING").get() // Fetch users
             ]);
 
             // Build thread map for task titles
             const threadMap = new Map<string, string>();
+            const threadsList: { id: string; title: string }[] = [];
             threadsSnap.docs.forEach(doc => {
                 threadMap.set(doc.id, doc.data().title || "Unknown Thread");
+                threadsList.push({ id: doc.id, title: doc.data().title || "Unknown" });
             });
 
+            // Process users
+            const usersList = usersSnap.docs.map(doc => ({
+                id: doc.id,
+                uid: doc.id,
+                name: doc.data().nickname || doc.data().displayName || doc.data().name || 'Unknown',
+                nickname: doc.data().nickname,
+                email: doc.data().email
+            }));
+            
             // Get attendance from RTDB
             let attendanceUntil1645 = 0;
             let attendanceUntil1900 = 0;
@@ -316,7 +331,9 @@ const getCachedDashboardData = unstable_cache(
                     startDate: task.startDate,
                     endDate: task.endDate,
                     assigneeIds: task.assigneeIds || []
-                }))
+                })),
+                threads: threadsList,
+                users: usersList
             };
         } catch (error) {
             console.error("getDashboardData Error:", error);
@@ -340,7 +357,9 @@ const getCachedDashboardData = unstable_cache(
                 todayAttendees: { until1645: [], until1900: [], noST: [], home: [] },
                 overallCompletion: 0,
                 myCompletion: 0,
-                allTasks: []
+                allTasks: [],
+                threads: [],
+                users: []
             };
         }
     },
@@ -375,7 +394,9 @@ export async function getDashboardData(): Promise<DashboardData> {
             todayAttendees: { until1645: [], until1900: [], noST: [], home: [] },
             overallCompletion: 0,
             myCompletion: 0,
-            allTasks: []
+            allTasks: [],
+            threads: [],
+            users: []
         };
     }
 

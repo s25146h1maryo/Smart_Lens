@@ -16,10 +16,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "SmartLens",
-  description: "AI駆動型の教育機関向け組織運営プラットフォーム",
+  description: "統合型活動支援プラットフォーム",
   manifest: "/manifest.json",
   icons: {
-    icon: "/icons/icon-192.png",
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
     shortcut: "/icons/icon-192.png",
     apple: "/icons/icon-192.png",
   },
