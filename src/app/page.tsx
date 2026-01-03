@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { motion } from "framer-motion";
 
+export const dynamic = "force-static";
+
 export default function Home() {
   return (
       <main style={{ 

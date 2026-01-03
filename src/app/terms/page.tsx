@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, FileText } from "lucide-react";
 
+export const dynamic = "force-static";
+
 export default function TermsPage() {
     const router = useRouter();
 
