@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useMemo } from "react";
+import { useState, useRef, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { format, isAfter, startOfDay } from "date-fns";
 import { ja } from "date-fns/locale";
@@ -17,6 +17,9 @@ import {
 import UnifiedHeader from "@/components/UnifiedHeader";
 import CreateThreadModal from "./CreateThreadModal";
 import { useSearchParams } from "next/navigation";
+
+// KPI Drill-down types
+type DrillDownType = 'todayDue' | 'pending' | 'overallComplete' | 'myComplete' | 'unread' | null;
 
 interface DashboardStats {
     pendingTaskCount: number;
@@ -84,7 +87,7 @@ export default function DashboardClient(props: DashboardClientProps) {
     const { data: session } = useSession();
     const searchParams = useSearchParams();
     const [isLoading, setIsLoading] = useState(!props.stats);
-    const [data, setData] = useState<any>(props);
+    const [data, setData] = useState<DashboardClientProps>(props);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -114,15 +117,15 @@ export default function DashboardClient(props: DashboardClientProps) {
     // Destructure from data state instead of direct props
     const {
         stats,
-        highPriorityTasks,
-        myTasks,
-        recentThreads,
-        todayAttendees,
+        highPriorityTasks = [],
+        myTasks = { todoCount: 0, inProgressCount: 0, doneCount: 0, tasks: [] },
+        recentThreads = [],
+        todayAttendees = { until1645: [], until1900: [], noST: [], home: [] },
         currentUser,
-        threads,
-        users,
-        overallCompletion,
-        myCompletion,
+        threads = [],
+        users = [],
+        overallCompletion = 0,
+        myCompletion = 0,
         allTasks = []
     } = data || {};
 
@@ -844,6 +847,7 @@ export default function DashboardClient(props: DashboardClientProps) {
                         {/* New Task Button - Show on Home & Menu */}
                 {/* ... existing new task button logic likely follows ... */}
             </div>
+                </div>{/* End Main Grid */}
 
             {/* Create Thread Modal - Controlled by URL param */}
             {searchParams.get('create') === 'true' && <CreateThreadModal />}
@@ -993,6 +997,8 @@ export default function DashboardClient(props: DashboardClientProps) {
                     </div>
                 </div>
             )}
+        </div>
+        {/* End Outer Wrapper */}
         </div>
     );
 }
