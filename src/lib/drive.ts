@@ -7,10 +7,33 @@ export { withRetry };
 const SCOPES = ["https://www.googleapis.com/auth/drive"];
 
 // Initialize Auth Client (Service Account - Fallback)
+// Helper to clean private key (Duplicated from firebase.ts for consistency)
+const getPrivateKey = () => {
+    let key = process.env.FIREBASE_PRIVATE_KEY;
+    if (!key) return undefined;
+    
+    // 0. Base64 Check
+    if (!key.includes("-----BEGIN PRIVATE KEY-----")) {
+        try {
+            key = Buffer.from(key, 'base64').toString('utf8');
+        } catch (e) {
+            // ignore
+        }
+    }
+    // 1. Remove quotes
+    if (key.startsWith('"') && key.endsWith('"')) {
+        key = key.slice(1, -1);
+    }
+    // 2. Replace escaped slashes
+    key = key.replace(/\\n/g, "\n");
+    return key;
+};
+
+// Initialize Auth Client (Service Account - Fallback)
 const auth = new google.auth.GoogleAuth({
     credentials: {
         client_email: process.env.FIREBASE_CLIENT_EMAIL,
-        private_key: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        private_key: getPrivateKey(),
     },
     scopes: SCOPES,
 });

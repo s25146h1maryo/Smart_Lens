@@ -20,11 +20,17 @@ export default async function DrivePage({
   let items, breadcrumbs;
 
   if (isShared) {
-      items = await getSharedDriveItems(folderId);
-      breadcrumbs = await getSharedDriveBreadcrumbs(folderId);
+      try {
+          items = await getSharedDriveItems(folderId || null);
+          breadcrumbs = await getSharedDriveBreadcrumbs(folderId || null);
+      } catch (e) {
+          console.error("Shared Drive Error:", e);
+          items = [];
+          breadcrumbs = [{ id: 'error', name: 'Error' }];
+      }
   } else {
-      items = await getDriveItems(folderId);
-      breadcrumbs = await getBreadcrumbs(folderId);
+      items = await getDriveItems(folderId || null);
+      breadcrumbs = await getBreadcrumbs(folderId || null);
   }
 
   return (

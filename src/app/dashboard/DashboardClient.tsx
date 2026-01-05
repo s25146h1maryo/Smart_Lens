@@ -164,6 +164,7 @@ export default function DashboardClient(props: DashboardClientProps) {
     const [newTaskAssigneeSearch, setNewTaskAssigneeSearch] = useState("");
     const [newTaskAttachments, setNewTaskAttachments] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
+
     const [uploadingCount, setUploadingCount] = useState(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const { uploadFile } = useChatUpload();

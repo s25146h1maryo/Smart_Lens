@@ -466,7 +466,10 @@ export function DriveLayout({ children, user }: { children: React.ReactNode; use
     const isShared = mode === 'shared';
 
     return (
-        <div className="h-screen w-full bg-[#050510] flex overflow-hidden font-sans">
+        <div 
+            className="h-screen w-full bg-[#050510] flex overflow-hidden font-sans"
+            style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        >
              {/* Sidebar */}
              <div className="w-64 border-r border-white/5 p-6 hidden md:flex flex-col gap-6 bg-zinc-900/30 backdrop-blur-xl">
                  <div className="flex items-center gap-2 px-2">
