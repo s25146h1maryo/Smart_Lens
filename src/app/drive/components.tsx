@@ -464,6 +464,7 @@ export function DriveLayout({ children, user }: { children: React.ReactNode; use
     const searchParams = useSearchParams();
     const mode = searchParams.get('mode');
     const isShared = mode === 'shared';
+    const router = useRouter();
 
     return (
         <div 
@@ -481,20 +482,20 @@ export function DriveLayout({ children, user }: { children: React.ReactNode; use
 
                  <nav className="space-y-1">
                      <p className="text-xs font-bold text-zinc-500 px-3 mb-2 uppercase tracking-wider">Storage</p>
-                     <Link 
-                        href="/drive" 
-                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${!isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+                     <button 
+                        onClick={() => { router.push('/drive'); router.refresh(); }}
+                        className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${!isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
                      >
                         <File className={`w-4 h-4 ${!isShared ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                         マイドライブ
-                     </Link>
-                     <Link 
-                        href="/drive?mode=shared" 
-                        className={`group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+                     </button>
+                     <button 
+                        onClick={() => { router.push('/drive?mode=shared'); router.refresh(); }}
+                        className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
                      >
                         <Folder className={`w-4 h-4 ${isShared ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                         共有ドライブ
-                     </Link>
+                     </button>
                  </nav>
              </div>
              
