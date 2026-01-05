@@ -19,6 +19,7 @@ export interface ThreadActionState {
 
 // ... (Top imports remain the same, need to add Chat interface or use raw db)
 import { Chat } from "@/types/chat";
+import { deleteTaskPermanent } from "./task";
 
 export async function createThread(prevState: ThreadActionState, formData: FormData): Promise<ThreadActionState> {
   const session = await auth();
@@ -226,10 +227,6 @@ export async function deleteThread(threadId: string) {
     if (!isRoot && !isCreator) {
         return { success: false, message: "Forbidden" };
     }
-
-    try {
-
-import { deleteTaskPermanent } from "./task";
 
     try {
         // --- HARD DELETE ---
