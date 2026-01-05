@@ -24,7 +24,8 @@ export default function GlobalSidebar() {
             {/* Mobile Toggle Button - Fixed Top Left */}
             <button 
                 onClick={() => setIsMobileOpen(true)}
-                className="md:hidden fixed top-3 left-4 z-50 p-2.5 bg-zinc-900/90 backdrop-blur-md rounded-full border border-white/10 text-white shadow-xl active:scale-95 transition-all"
+                className="md:hidden fixed left-4 z-50 p-2.5 bg-zinc-900/90 backdrop-blur-md rounded-full border border-white/10 text-white shadow-xl active:scale-95 transition-all"
+                style={{ top: 'calc(0.75rem + env(safe-area-inset-top))' }}
                 aria-label="Menu"
             >
                 <Menu size={20} />
