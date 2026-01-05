@@ -517,7 +517,10 @@ export default function DashboardClient(props: DashboardClientProps) {
                 <div className="absolute bottom-[-200px] left-[-100px] w-[500px] h-[500px] bg-indigo-600/5 rounded-full blur-[180px]"></div>
             </div>
 
-            <div className="relative z-10 flex flex-col h-full p-4 max-w-[1920px] mx-auto w-full gap-3 overflow-hidden">
+            <div 
+                className="relative z-10 flex flex-col h-full px-4 pb-4 max-w-[1920px] mx-auto w-full gap-3 overflow-hidden"
+                style={{ paddingTop: 'calc(1rem + env(safe-area-inset-top))' }}
+            >
                 
                 {/* Header - Hidden on Mobile, shown on Desktop */}
                 <div className="hidden lg:block">
