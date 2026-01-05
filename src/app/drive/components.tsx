@@ -465,6 +465,12 @@ export function DriveLayout({ children, user }: { children: React.ReactNode; use
     const mode = searchParams.get('mode');
     const isShared = mode === 'shared';
     const router = useRouter();
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    // Reset navigating state when mode changes
+    useEffect(() => {
+        setIsNavigating(false);
+    }, [mode]);
 
     return (
         <div 
@@ -483,15 +489,31 @@ export function DriveLayout({ children, user }: { children: React.ReactNode; use
                  <nav className="space-y-1">
                      <p className="text-xs font-bold text-zinc-500 px-3 mb-2 uppercase tracking-wider">Storage</p>
                      <button 
-                        onClick={() => { router.push('/drive'); router.refresh(); }}
-                        className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${!isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+                        disabled={isNavigating}
+                        onClick={() => { setIsNavigating(true); window.location.href = '/drive'; }}
+                        className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${!isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'} ${isNavigating ? 'opacity-50 cursor-wait' : ''}`}
                      >
                         <File className={`w-4 h-4 ${!isShared ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                         マイドライブ
                      </button>
-                     <button 
-                        onClick={() => { router.push('/drive?mode=shared'); router.refresh(); }}
-                        className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'}`}
+            {/* Mobile Navigation (Switch Mode) */ }
+            <div className="md:hidden flex items-center gap-2 mb-4 bg-zinc-900/50 p-1 rounded-xl border border-white/5 ml-12">
+                <button 
+                    onClick={() => window.location.href = '/drive'}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isShared ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500'}`}
+                >
+                    My Drive
+                </button>
+                <button 
+                    onClick={() => window.location.href = '/drive?mode=shared'}
+                    className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${isShared ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500'}`}
+                >
+                    Shared
+                </button>
+            </div>         <button 
+                        disabled={isNavigating}
+                        onClick={() => { setIsNavigating(true); router.push('/drive?mode=shared'); router.refresh(); }}
+                        className={`w-full group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isShared ? 'bg-indigo-500/10 text-indigo-300' : 'text-zinc-400 hover:text-white hover:bg-white/5'} ${isNavigating ? 'opacity-50 cursor-wait' : ''}`}
                      >
                         <Folder className={`w-4 h-4 ${isShared ? 'text-indigo-400' : 'text-zinc-500 group-hover:text-zinc-300'}`} />
                         共有ドライブ

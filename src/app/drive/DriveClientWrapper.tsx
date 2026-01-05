@@ -45,18 +45,18 @@ export default function DriveClientWrapper({ initialItems, breadcrumbs, folderId
         <div>
             {/* Mobile Navigation (Switch Mode) */ }
             <div className="md:hidden flex items-center gap-2 mb-4 bg-zinc-900/50 p-1 rounded-xl border border-white/5 ml-12">
-                <Link 
-                    href="/drive" 
+                <button 
+                    onClick={() => window.location.href = '/drive'}
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${!isShared ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500'}`}
                 >
                     My Drive
-                </Link>
-                <Link 
-                    href="/drive?mode=shared" 
+                </button>
+                <button 
+                    onClick={() => window.location.href = '/drive?mode=shared'}
                     className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${isShared ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500'}`}
                 >
                     Shared
-                </Link>
+                </button>
             </div>
 
             <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
