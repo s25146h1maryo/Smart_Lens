@@ -16,10 +16,20 @@ const getFirebaseApp = (): App => {
     const projectId = process.env.FIREBASE_PROJECT_ID;
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
     
-    // Robust parsing for Private Key (handles Vercel env var quirks)
+    // Robust parsing for Private Key
     let privateKey = process.env.FIREBASE_PRIVATE_KEY;
     if (privateKey) {
-        // 1. Remove wrapping quotes if present (common copy-paste error)
+        // 0. Base64 Decode optimization (Most robust method)
+        // If the key doesn't start with the standard header, assume it's Base64 encoded
+        if (!privateKey.includes("-----BEGIN PRIVATE KEY-----")) {
+            try {
+                privateKey = Buffer.from(privateKey, 'base64').toString('utf8');
+            } catch (e) {
+                console.error("Failed to decode Base64 private key", e);
+            }
+        }
+
+        // 1. Remove wrapping quotes if present
         if (privateKey.startsWith('"') && privateKey.endsWith('"')) {
              privateKey = privateKey.slice(1, -1);
         }
