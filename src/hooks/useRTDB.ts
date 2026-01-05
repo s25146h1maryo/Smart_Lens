@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { rtdb } from "@/lib/firebase_client";
 import { ref, onValue, push, set, onDisconnect, query, limitToLast, orderByChild, serverTimestamp, get, remove } from "firebase/database";
 import { Message } from "@/types/chat";
+import { RoomStatusData, RoomStatusRecord } from "@/app/actions/room_status";
 
 export function useChatMessages(chatId: string) {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -256,3 +257,71 @@ export async function sendReaction(chatId: string, messageId: string, userId: st
     }
 }
 
+
+// --- Room Status Hook ---
+
+export function useRoomStatusListener() {
+    const [data, setData] = useState<RoomStatusData>({
+        current: null,
+        history: [],
+        stats: { openCount: 0, totalDays: 30 }
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        setLoading(true);
+        
+        // Listen to all relevant nodes
+        // 1. Current Status
+        const currentRef = ref(rtdb, "roomStatus/current");
+        
+        // 2. History (Last 10)
+        const historyRef = query(
+            ref(rtdb, "roomStatus/history"),
+            orderByChild("updatedAt"),
+            limitToLast(10)
+        );
+
+        // 3. Stats
+        const statsRef = ref(rtdb, "roomStatus/monthlyStats");
+
+        // We use a single state update effect or separate listeners?
+        // Separate subscribers is easier to manage.
+        
+        const unsubCurrent = onValue(currentRef, (snap) => {
+            setData(prev => ({ ...prev, current: snap.val() || null }));
+        });
+
+        const unsubHistory = onValue(historyRef, (snap) => {
+            const val = snap.val();
+            if (val) {
+                // Convert object to array and sort desc
+                const list = Object.values(val) as RoomStatusRecord[];
+                list.sort((a, b) => b.updatedAt - a.updatedAt);
+                setData(prev => ({ ...prev, history: list }));
+            } else {
+                setData(prev => ({ ...prev, history: [] }));
+            }
+        });
+
+        const unsubStats = onValue(statsRef, (snap) => {
+            const val = snap.val();
+            setData(prev => ({ 
+                ...prev, 
+                stats: val || { openCount: 0, totalDays: 30 } 
+            }));
+            // Assume loading is done when we get at least one update (e.g. stats is usually fast/static)
+            // Or just set loading false immediately after setting up listeners?
+            // Realtime listeners trigger asynchronously.
+            setLoading(false);
+        });
+
+        return () => {
+            unsubCurrent();
+            unsubHistory();
+            unsubStats();
+        };
+    }, []);
+
+    return { data, loading };
+}

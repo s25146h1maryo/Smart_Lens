@@ -1,69 +1,30 @@
-import { useState, useEffect, useCallback } from 'react';
-import { getRoomStatus, updateRoomStatus, RoomStatusData, RoomStatusRecord } from '@/app/actions/room_status';
+import { useCallback } from 'react';
+import { updateRoomStatus } from '@/app/actions/room_status';
+import { useRoomStatusListener } from './useRTDB';
 
 export function useRoomStatus() {
-    const [data, setData] = useState<RoomStatusData>({
-        current: null,
-        history: [],
-        stats: { openCount: 0, totalDays: 30 }
-    });
-    const [loading, setLoading] = useState(true);
+    // Rely on Realtime Database listener for data (No CPU-intensive polling)
+    const { data, loading } = useRoomStatusListener();
 
-    // Fetch room status data
-    const fetchStatus = useCallback(async () => {
-        try {
-            const result = await getRoomStatus();
-            setData(result);
-        } catch (error) {
-            console.error("Failed to fetch room status:", error);
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
-    // Initial fetch and polling
-    useEffect(() => {
-        setLoading(true);
-        fetchStatus();
-
-        // Poll for updates every 5 seconds
-        const interval = setInterval(fetchStatus, 5000);
-
-        return () => clearInterval(interval);
-    }, [fetchStatus]);
-
-    // Toggle status
+    // Toggle status - Keep Server Action for strict writes, 
+    // but the UI update will come from the RTDB listener automatically.
     const toggleStatus = useCallback(async (
         userId: string,
         userName: string,
         newIsOpen: boolean
     ) => {
-        // Optimistic update
-        const optimisticRecord: RoomStatusRecord = {
-            isOpen: newIsOpen,
-            updatedAt: Date.now(),
-            updatedBy: userId,
-            updatedByName: userName,
-        };
-
-        setData(prev => ({
-            ...prev,
-            current: optimisticRecord,
-            history: [optimisticRecord, ...prev.history.slice(0, 9)],
-            // If opening, optimistically update stats
-            stats: newIsOpen 
-                ? { ...prev.stats, openCount: prev.stats.openCount + 1 }
-                : prev.stats
-        }));
-
-        // Save to server
+        // Optimistic update is handled by the Listener (speed is near-instant)
+        // or we can optimistically set local state if needed, 
+        // but for simplicity & correctness we trust the listener.
+        
+        // Save to server (which updates RTDB, which triggers listener)
         const result = await updateRoomStatus(newIsOpen);
         
         if (!result.success) {
             console.error("Update failed:", result.error);
-            await fetchStatus(); // Revert on failure
+            // Error handling could be added here (e.g. toast)
         }
-    }, [fetchStatus]);
+    }, []);
 
     return { 
         current: data.current, 

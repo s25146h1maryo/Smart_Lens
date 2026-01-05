@@ -46,7 +46,7 @@ export default function GlobalTodoClient({
     if (currentUser.allowGlobalTodo === false) {
         return (
             <div className="min-h-screen bg-zinc-950 text-white flex flex-col font-sans">
-                <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/20">
+                <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/20 pt-[env(safe-area-inset-top)]">
                     <div className="max-w-[1800px] mx-auto">
                         <UnifiedHeader title="Global Todo" user={currentUser} className="px-6 py-2 !mb-0" />
                     </div>
@@ -528,7 +528,7 @@ export default function GlobalTodoClient({
     return (
         <div className="min-h-screen bg-zinc-950 text-white flex flex-col font-sans">
             {/* Header / Navbar */}
-            <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/20">
+            <header className="sticky top-0 z-40 bg-zinc-950/80 backdrop-blur-xl border-b border-white/5 shadow-2xl shadow-black/20 pt-[env(safe-area-inset-top)]">
                 <div className="max-w-[1800px] mx-auto">
                     
                     <UnifiedHeader
