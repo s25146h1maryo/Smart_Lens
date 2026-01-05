@@ -2,7 +2,7 @@
 
 import { auth } from "@/auth";
 import { db } from "@/lib/firebase";
-import { createFolder, getResumableUploadUrl, grantPermission, ROOT_FOLDER_ID } from "@/lib/drive";
+import { createFolder, getResumableUploadUrl, grantPermission, ROOT_FOLDER_ID, deleteFile } from "@/lib/drive";
 import { ensureSystemStructure, findOrCreateFolder, ensureThreadDriveStructure } from "@/lib/drive_structure";
 import { CreateThreadSchema } from "@/lib/schemas";
 import { Thread, ThreadStatus } from "@/types";
@@ -228,19 +228,53 @@ export async function deleteThread(threadId: string) {
     }
 
     try {
-        // Soft Delete
-        await threadRef.update({ 
-            status: "archived", 
-            updatedAt: Date.now() 
-        });
 
-        // Also archive the chat?
-        // const chats = await db.collection("chats").where("threadId", "==", threadId).get();
-        // chats.forEach(c => c.ref.update({ status: "archived" }));
+import { deleteTaskPermanent } from "./task";
+
+    try {
+        // --- HARD DELETE ---
+
+        // 1. Delete All Tasks (Cascade)
+        // This handles task drive folder/file deletion as well
+        const tasksSnap = await db.collection("tasks").where("threadId", "==", threadId).get();
+        if (!tasksSnap.empty) {
+            // Processing in parallel might be too heavy for many tasks, but sequential is safer for rate limits
+            // Using Promise.all with small chunks or just all is usually fine for < 50 tasks.
+            // Let's use Promise.all.
+            await Promise.all(tasksSnap.docs.map(doc => deleteTaskPermanent(doc.id, threadId)));
+        }
+
+        // 2. Delete Thread Chat (Optional but clean)
+        const chatsSnap = await db.collection("chats").where("threadId", "==", threadId).get();
+        if (!chatsSnap.empty) {
+            const batchChat = db.batch();
+            for (const c of chatsSnap.docs) {
+                // Delete messages subcollection? Firestore requires manual recursion or cloud functions.
+                // For now, we delete the chat doc. The messages will be orphaned in DB but hidden.
+                // A true hard delete of subcollections is expensive in client code.
+                // Given the constraints, let's just delete the chat doc reference.
+                batchChat.delete(c.ref);
+            }
+            await batchChat.commit();
+        }
+
+        // 3. Delete Thread Drive Folder
+        if (data.driveFolderId) {
+            try {
+                await deleteFile(data.driveFolderId);
+            } catch (e) {
+                console.warn(`Failed to delete Thread Drive Folder: ${data.driveFolderId}`, e);
+            }
+        }
+
+        // 4. Delete Thread Document
+        await threadRef.delete();
 
         revalidatePath("/dashboard");
         revalidatePath("/threads");
+        revalidatePath("/todo");
         revalidateTag('threads', 'max');
+        revalidateTag('tasks', 'max');
         return { success: true };
     } catch (e) {
         console.error("Delete Thread Failed", e);
