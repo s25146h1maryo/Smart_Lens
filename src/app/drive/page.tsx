@@ -17,7 +17,7 @@ export default async function DrivePage({
   const mode = params.mode || 'private';
   const isShared = mode === 'shared';
 
-  let items, breadcrumbs;
+  let items: any[] = [], breadcrumbs: any[] = [];
 
   if (isShared) {
       try {
