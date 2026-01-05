@@ -141,13 +141,7 @@ export default function DashboardClient(props: DashboardClientProps) {
         setMounted(true);
     }, []);
 
-    if (!mounted || isLoading || !stats || !currentUser) {
-        return (
-            <div className="min-h-screen bg-[#050508] flex items-center justify-center text-white">
-                <Loader2 className="animate-spin text-indigo-500" size={32} />
-            </div>
-        );
-    }
+
 
     
     // Mobile Active Tab
@@ -155,7 +149,7 @@ export default function DashboardClient(props: DashboardClientProps) {
 
     // Room status toggle
     const { current: roomCurrent, toggleStatus } = useRoomStatus();
-    const isRoomOpen = roomCurrent?.isOpen ?? stats.isRoomOpen;
+    const isRoomOpen = roomCurrent?.isOpen ?? stats?.isRoomOpen ?? false;
 
     // Edit task modal
     const [editingTask, setEditingTask] = useState<(Task & { threadTitle?: string }) | null>(null);
@@ -166,7 +160,7 @@ export default function DashboardClient(props: DashboardClientProps) {
     const [newTaskThread, setNewTaskThread] = useState(threads[0]?.id || "");
     const [newTaskDate, setNewTaskDate] = useState("");
     const [newTaskPriority, setNewTaskPriority] = useState<Task['priority']>('medium');
-    const [newTaskAssignees, setNewTaskAssignees] = useState<string[]>([currentUser.id]);
+    const [newTaskAssignees, setNewTaskAssignees] = useState<string[]>(currentUser?.id ? [currentUser.id] : []);
     const [newTaskAssigneeSearch, setNewTaskAssigneeSearch] = useState("");
     const [newTaskAttachments, setNewTaskAttachments] = useState<any[]>([]);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -194,15 +188,16 @@ export default function DashboardClient(props: DashboardClientProps) {
     // Filter tasks based on mode
     const filterByMode = (tasks: TaskItem[]) => {
         if (filterMode === 'mine') {
-            return tasks.filter(t => t.assigneeIds?.includes(currentUser.id));
+            return tasks.filter(t => t.assigneeIds?.includes(currentUser?.id || ''));
         }
         return tasks;
     };
 
     // Computed filtered data
     const filteredHighPriorityTasks = useMemo(() => {
+        if (!currentUser) return [];
         return filterByMode(highPriorityTasks);
-    }, [highPriorityTasks, filterMode, currentUser.id]);
+    }, [highPriorityTasks, filterMode, currentUser?.id]);
 
     const filteredMyTasks = useMemo(() => {
         // myTasks already filtered by server, but apply mode for consistency
@@ -215,8 +210,11 @@ export default function DashboardClient(props: DashboardClientProps) {
 
     // Compute filtered stats
     const filteredStats = useMemo(() => {
+        if (!currentUser && filterMode === 'mine') {
+             return { pending: 0, todayDue: 0, completion: 0, done: 0, total: 0 };
+        }
         const baseTasks = filterMode === 'mine' 
-            ? combinedTasks.filter(t => t.assigneeIds?.includes(currentUser.id))
+            ? combinedTasks.filter(t => t.assigneeIds?.includes(currentUser?.id || ''))
             : combinedTasks;
         
         const pendingCount = baseTasks.filter(t => t.status !== 'done').length;
@@ -237,14 +235,15 @@ export default function DashboardClient(props: DashboardClientProps) {
             done: doneCount,
             total: totalCount
         };
-    }, [combinedTasks, filterMode, currentUser.id, todayStart, todayEnd]);
+    }, [combinedTasks, filterMode, currentUser?.id, todayStart, todayEnd]);
 
     // Drill-down task list
     const drillDownTasks = useMemo(() => {
         if (!activeDrillDown) return [];
-        
+        if (!currentUser && filterMode === 'mine') return [];
+
         const baseTasks = filterMode === 'mine'
-            ? combinedTasks.filter(t => t.assigneeIds?.includes(currentUser.id))
+            ? combinedTasks.filter(t => t.assigneeIds?.includes(currentUser?.id || ''))
             : combinedTasks;
         
         switch (activeDrillDown) {
@@ -262,7 +261,7 @@ export default function DashboardClient(props: DashboardClientProps) {
             default:
                 return [];
         }
-    }, [activeDrillDown, combinedTasks, filterMode, currentUser.id, todayStart, todayEnd]);
+    }, [activeDrillDown, combinedTasks, filterMode, currentUser?.id, todayStart, todayEnd]);
 
     const drillDownTitle = useMemo(() => {
         switch (activeDrillDown) {
@@ -275,6 +274,7 @@ export default function DashboardClient(props: DashboardClientProps) {
     }, [activeDrillDown]);
 
     const handleRoomToggle = async () => {
+        if (!currentUser) return;
         await toggleStatus(currentUser.id, currentUser.name, !isRoomOpen);
     };
 
@@ -351,7 +351,7 @@ export default function DashboardClient(props: DashboardClientProps) {
             });
             setNewTaskTitle("");
             setNewTaskDate("");
-            setNewTaskAssignees([currentUser.id]);
+            setNewTaskAssignees(currentUser?.id ? [currentUser.id] : []);
             setNewTaskPriority("medium");
             setNewTaskAttachments([]);
             setShowNewTask(false);
@@ -499,6 +499,15 @@ export default function DashboardClient(props: DashboardClientProps) {
     );
 
     const totalAttendees = todayAttendees.until1645.length + todayAttendees.until1900.length;
+
+    // Mounted check moved to end to prevent Hook Rule violation (Rendered fewer hooks)
+    if (!mounted || isLoading || !stats || !currentUser) {
+        return (
+            <div className="min-h-screen bg-[#050508] flex items-center justify-center text-white">
+                <Loader2 className="animate-spin text-indigo-500" size={32} />
+            </div>
+        );
+    }
 
     return (
         <div className="fixed inset-0 bg-[#050508] text-zinc-100 overflow-hidden font-sans flex flex-col">
