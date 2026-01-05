@@ -135,7 +135,13 @@ export default function DashboardClient(props: DashboardClientProps) {
     // KPI Drill-down modal
     const [activeDrillDown, setActiveDrillDown] = useState<DrillDownType>(null);
     
-    if (isLoading || !stats || !currentUser) {
+    // Fix for Hydration Mismatch (Timezone differences, etc.)
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted || isLoading || !stats || !currentUser) {
         return (
             <div className="min-h-screen bg-[#050508] flex items-center justify-center text-white">
                 <Loader2 className="animate-spin text-indigo-500" size={32} />

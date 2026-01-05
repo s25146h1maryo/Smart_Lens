@@ -122,18 +122,39 @@ export default function CalendarClient({ internalTasks, externalTasks, userId, u
                 title="タスクカレンダー"
                 className="px-6 py-2 border-b border-white/5 bg-black/20 backdrop-blur-md !mb-0"
                 leftChildren={
-                    <div className="flex items-center gap-2 bg-zinc-900/50 p-1 rounded-lg border border-white/5">
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1 bg-zinc-900/50 p-1 rounded-lg border border-white/5">
+                            <button 
+                                onClick={() => setFilter('all')}
+                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'all' ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+                            >
+                                全体
+                            </button>
+                            <button 
+                                onClick={() => setFilter('assigned')}
+                                className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'assigned' ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+                            >
+                                自分のタスク
+                            </button>
+                        </div>
+
+                        {/* High School Schedule Toggle */}
                         <button 
-                            onClick={() => setFilter('all')}
-                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'all' ? 'bg-zinc-800 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+                            onClick={() => setShowExternal(!showExternal)}
+                            className={`px-3 py-1.5 rounded-lg border text-xs font-bold transition-all flex items-center gap-1.5 ${showExternal ? 'bg-slate-700/50 border-slate-500/50 text-white' : 'bg-transparent border-white/10 text-zinc-500 hover:text-zinc-300'}`}
+                            title="高校予定表の表示切り替え"
                         >
-                            全体
+                            <CalendarDays size={14} />
+                            <span className="hidden sm:inline">高校予定表</span>
                         </button>
+
+                        {/* Export URL Button */}
                         <button 
-                            onClick={() => setFilter('assigned')}
-                            className={`px-3 py-1.5 rounded-md text-xs font-bold transition-all ${filter === 'assigned' ? 'bg-indigo-600 text-white shadow' : 'text-zinc-500 hover:text-white'}`}
+                            onClick={handleCopyExportUrl}
+                            className="p-1.5 rounded-lg border border-white/10 bg-zinc-900/50 text-zinc-400 hover:text-white hover:bg-white/5 transition-all"
+                            title="カレンダー連携URLをコピー"
                         >
-                            自分のタスク
+                            <LinkIcon size={16} />
                         </button>
                     </div>
                 }
