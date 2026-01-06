@@ -10,28 +10,40 @@ export async function updateProfile(formData: FormData) {
     const session = await auth();
     if (!session?.user?.id) return { success: false, message: "Unauthorized" };
 
-    const rawData = {
+    const normalizedData: any = {
         nickname: formData.get("nickname"),
     };
 
-    const validated = UpdateUserProfileSchema.safeParse(rawData);
+    // Parse notificationSettings if present
+    const notificationJson = formData.get("notificationSettings");
+    if (notificationJson) {
+         try {
+             normalizedData.notificationSettings = JSON.parse(notificationJson as string);
+         } catch(e) { 
+             console.warn("Failed to parse settings JSON", e);
+         }
+    }
+
+    const validated = UpdateUserProfileSchema.safeParse(normalizedData);
 
     if (!validated.success) {
         return { success: false, message: "Invalid input" };
     }
 
-    if (!validated.data.nickname || validated.data.nickname.trim() === "") {
+    if (validated.data.nickname && validated.data.nickname.trim() === "") {
         return { success: false, message: "Nickname cannot be empty" };
     }
 
     try {
         // Use set with merge to handle both new and existing users
-        // update() would fail if document doesn't exist (e.g., after system reset)
-        // Note: jobTitle is NOT updated here - admin only
-        await db.collection("users").doc(session.user.id).set({
-            nickname: validated.data.nickname,
+        const updates: any = {
             updatedAt: Date.now(),
-        }, { merge: true });
+        };
+        
+        if (validated.data.nickname) updates.nickname = validated.data.nickname;
+        if (validated.data.notificationSettings) updates.notificationSettings = validated.data.notificationSettings;
+
+        await db.collection("users").doc(session.user.id).set(updates, { merge: true });
 
         revalidatePath("/profile");
         revalidatePath("/pending");

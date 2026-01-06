@@ -33,7 +33,7 @@ export function usePushNotifications(userId?: string) {
 
             if (perm === 'granted') {
                 // Register service worker first
-                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                const registration = await navigator.serviceWorker.register('/sw.js');
                 
                 const messaging = getMessaging(app);
                 const fcmToken = await getToken(messaging, {

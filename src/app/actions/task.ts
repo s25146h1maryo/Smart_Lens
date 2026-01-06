@@ -94,7 +94,8 @@ export async function createTask(
                     "新しいタスクが割り当てられました",
                     title,
                     `/thread/${threadId}`,
-                    `task-${newTask.id}`
+                    `task-${newTask.id}`,
+                    'taskAssignment'
                 );
             } catch (pushErr) {
                 await logger.warn("Push notification failed", { error: pushErr });

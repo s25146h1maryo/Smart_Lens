@@ -3,6 +3,7 @@
 import { Message } from "@/types/chat";
 import { useEffect, useRef, useState } from "react";
 import { updateChatMetadata, markAsSeen } from "@/app/actions/chat";
+import { sendNewMessageNotification } from "@/app/actions/message_notification";
 import UnifiedHeader from "@/components/UnifiedHeader";
 import GroupSettingsModal from "./GroupSettingsModal";
 import { useChatMessages, usePresence, useOnlineStatus, useTyping, useChatReadStatus, sendReaction, markChatMetaAsSeen } from "@/hooks/useRTDB";
@@ -201,6 +202,10 @@ export default function ChatWindow({ currentUser, recipientUser, chatId, initial
             updateLastSeen(currentUser.id);
             await sendMessage(currentUser.id, content, 'text', undefined, replyToData);
             updateChatMetadata(chatId, content).catch(err => console.error("Metadata update failed", err));
+            
+            // Fire-and-forget notification
+            sendNewMessageNotification(chatId, currentUser.id, content, chatName || (isGroup ? "Group Chat" : undefined));
+
         } catch (error) {
             console.error("Failed to send", error);
             setInputValue(content);

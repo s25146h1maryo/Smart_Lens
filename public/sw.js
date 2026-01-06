@@ -1,6 +1,39 @@
 // Service Worker for SmartLens PWA
 // Handles offline detection and restricts access when offline
 
+importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.0/firebase-messaging-compat.js');
+
+// Initialize Firebase (Background)
+firebase.initializeApp({
+    apiKey: 'AIzaSyCHbKe6H0tSJwd3TbEehD834joBLh4nAwk',
+    authDomain: 'smartlens-facd7.firebaseapp.com',
+    projectId: 'smartlens-facd7',
+    storageBucket: 'smartlens-facd7.firebasestorage.app',
+    messagingSenderId: '984135844396',
+    appId: '1:984135844396:web:53f307b17f3ae6bd700789'
+});
+
+const messaging = firebase.messaging();
+
+// Handle background messages via Firebase SDK
+messaging.onBackgroundMessage((payload) => {
+    console.log('[SW] Background message received:', payload);
+
+    const notificationTitle = payload.notification?.title || 'SmartLens';
+    const notificationOptions = {
+        body: payload.notification?.body || '新しい通知があります',
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: payload.data?.tag || 'default',
+        data: {
+            url: payload.data?.url || '/dashboard'
+        }
+    };
+
+    self.registration.showNotification(notificationTitle, notificationOptions);
+});
+
 const CACHE_NAME = 'smartlens-v1';
 const DASHBOARD_URL = '/dashboard';
 const OFFLINE_URL = '/offline';
@@ -45,6 +78,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
     
+    // Skip based on origin or if it's a firebase request (googleapis)
+    if (url.origin.includes('googleapis') || url.origin.includes('firebase')) {
+        return;
+    }
+    
     // Skip non-navigation requests and external URLs
     if (event.request.mode !== 'navigate' || url.origin !== location.origin) {
         return;
@@ -83,26 +121,6 @@ self.addEventListener('fetch', (event) => {
                     });
                 }
             })
-    );
-});
-
-// Push notification handling
-self.addEventListener('push', (event) => {
-    if (!event.data) return;
-
-    const data = event.data.json();
-    const options = {
-        body: data.body || 'SmartLensからの通知',
-        icon: '/icons/icon-192.png',
-        badge: '/icons/icon-192.png',
-        tag: data.tag || 'default',
-        data: {
-            url: data.url || '/dashboard'
-        }
-    };
-
-    event.waitUntil(
-        self.registration.showNotification(data.title || 'SmartLens', options)
     );
 });
 

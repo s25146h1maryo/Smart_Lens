@@ -7,12 +7,20 @@ export const UserStatusSchema = z.object({
     availability: z.string().max(20),
 });
 
+export const NotificationSettingsSchema = z.object({
+    taskAssignment: z.boolean().default(true),
+    newMessage: z.boolean().default(true),
+    morningSummary: z.boolean().default(true),
+    afternoonAttendance: z.boolean().default(true),
+});
+
 export const UserProfileSchema = z.object({
     uid: z.string(),
     email: z.string().email(),
     role: UserRoleSchema,
     jobTitle: z.string().trim().min(2).max(50),
     status: UserStatusSchema,
+    notificationSettings: NotificationSettingsSchema.optional(),
     stats: z.object({
         attendanceCount: z.number().int().nonnegative(),
     }),
@@ -24,6 +32,7 @@ export const UpdateUserProfileSchema = z.object({
     jobTitle: z.string().trim().max(50).optional().nullable(),
     nickname: z.string().trim().min(1, "Nickname cannot be empty").max(30).optional(),
     status: UserStatusSchema.partial().optional(),
+    notificationSettings: NotificationSettingsSchema.partial().optional(),
 });
 
 export const CreateThreadSchema = z.object({

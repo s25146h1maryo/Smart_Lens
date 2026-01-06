@@ -7,6 +7,7 @@ import Link from "next/link";
 import UnifiedHeader from "@/components/UnifiedHeader";
 import { updateProfile } from "@/app/actions/user";
 import { FileText, Shield } from "lucide-react";
+import NotificationSettings from "./NotificationSettings";
 
 export default function SettingsPage() {
     const { data: session, update } = useSession();
@@ -48,6 +49,9 @@ export default function SettingsPage() {
 
     if (!session) return <div className="p-10 text-white">読み込み中...</div>;
 
+    // Cast user to any to access custom notificationSettings property
+    const userWithSettings = session.user as any;
+
     return (
         <div className="max-w-2xl mx-auto py-12 px-4">
              <UnifiedHeader 
@@ -57,6 +61,11 @@ export default function SettingsPage() {
             />
             
             <div className="bg-zinc-900/50 border border-white/5 rounded-2xl p-6 space-y-8">
+                {/* Notification Settings */}
+                <NotificationSettings initialSettings={userWithSettings?.notificationSettings} />
+
+                <hr className="border-white/5" />
+
                 {/* Profile Section */}
                 <section className="space-y-6">
                     <h2 className="text-xl font-semibold text-white">プロフィール</h2>
