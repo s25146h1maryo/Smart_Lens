@@ -110,10 +110,11 @@ async function getMorningSummaryForUser(userId: string): Promise<{ body: string,
     // Fetch tasks
     const tasksSnap = await db.collection("tasks")
         .where("assigneeIds", "array-contains", userId)
-        .where("status", "!=", "done")
         .get();
 
-    const tasks = tasksSnap.docs.map(t => ({ id: t.id, ...t.data() } as Task));
+    const tasks = tasksSnap.docs
+        .map(t => ({ id: t.id, ...t.data() } as Task))
+        .filter(t => t.status !== "done");
     
     const dueToday = tasks.filter(t => {
         if (!t.dueDate) return false;
