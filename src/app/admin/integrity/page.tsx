@@ -5,6 +5,7 @@ import { getAuditLogs, AuditAction } from "@/lib/audit";
 import { SystemResetButton } from "./SystemResetButton";
 import TeacherManagement from "./TeacherManagement";
 import { getAllUsersWithEmail } from "@/app/actions/user";
+import { NotificationTester } from "./NotificationTester";
 
 export default async function IntegrityPage() {
     const session = await auth();
@@ -90,6 +91,9 @@ export default async function IntegrityPage() {
                     </tbody>
                 </table>
             </div>
+            
+            {/* Notification Tester - ROOT Only */}
+            <NotificationTester />
             
             {/* TEACHER Management - ROOT Only */}
             <TeacherManagement users={users} />

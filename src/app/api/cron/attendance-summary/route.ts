@@ -1,8 +1,7 @@
-import { db, adminApp } from "@/lib/firebase";
-import { getDatabase } from "firebase-admin/database";
+import { db } from "@/lib/firebase";
 import { sendPushNotification } from "@/lib/push";
 import { NextResponse } from "next/server";
-import { format } from "date-fns";
+import { getAttendanceSummaryData, formatAttendanceMessage } from "@/app/actions/notifications";
 
 export const dynamic = 'force-dynamic';
 
@@ -10,29 +9,11 @@ export async function GET(request: Request) {
     try {
         console.log("Starting Attendance Summary Cron...");
         
-        // 1. Fetch Today's Attendance from RTDB
-        const rtdb = getDatabase(adminApp);
-        const todayStr = format(new Date(), "yyyy-MM-dd");
-        
-        const snapshot = await rtdb.ref(`attendance/${todayStr}`).once("value");
-        const data = snapshot.val() || {};
-        
-        // 2. Synthesize Stats
-        const records = Object.values(data) as any[];
-        const total = records.length;
-        const present = records.filter(r => r.status === 'present').length;
-        const late = records.filter(r => r.status === 'late').length;
-        const absent = records.filter(r => r.status === 'absent').length;
-        const leave = records.filter(r => r.status === 'leave').length;
+        // 1. Get Data & Format
+        const data = await getAttendanceSummaryData();
+        const body = await formatAttendanceMessage(data);
 
-        // If no data, maybe skip? or send "No records"?
-        if (total === 0) {
-            return NextResponse.json({ success: true, message: "No attendance data" });
-        }
-
-        const body = `出席: ${present}人\n遅刻: ${late}人\n欠席: ${absent}人\n休暇: ${leave}人`;
-
-        // 3. Find Target Users
+        // 2. Find Target Users
         const usersSnap = await db.collection("users").get();
         const targetIds: string[] = [];
 
