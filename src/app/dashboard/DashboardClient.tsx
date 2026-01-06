@@ -73,7 +73,7 @@ interface DashboardClientProps {
         home: { id: string; name: string }[];
     };
     currentUser?: { id: string; name: string; email: string };
-    threads?: { id: string; title: string }[];
+    threads?: { id: string; title: string; members?: string[] }[];
     users?: any[];
     overallCompletion?: number;
     myCompletion?: number;
@@ -906,7 +906,10 @@ export default function DashboardClient(props: DashboardClientProps) {
                     task={editingTask as Task}
                     isOpen={!!editingTask}
                     onClose={() => setEditingTask(null)}
-                    users={users}
+                    users={users.filter(u => {
+                        const thread = threads.find(t => t.id === editingTask.threadId);
+                        return thread?.members ? thread.members.includes(u.id) : true;
+                    })}
                 />
             )}
 

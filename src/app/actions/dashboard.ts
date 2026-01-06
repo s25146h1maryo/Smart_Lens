@@ -100,7 +100,7 @@ export interface DashboardData {
         endDate?: number | null;
         assigneeIds?: string[];
     }[];
-    threads: { id: string; title: string }[];
+    threads: { id: string; title: string; members?: string[]; hiddenFromGlobalTodo?: boolean }[];
     users: { id: string; uid: string; name: string; nickname?: string; email?: string }[];
 }
 
@@ -131,12 +131,25 @@ const getCachedDashboardData = unstable_cache(
                 db.collection("users").where("role", "!=", "PENDING").get() // Fetch users
             ]);
 
-            // Build thread map for task titles
+            // Build thread map for task titles & filtering
             const threadMap = new Map<string, string>();
-            const threadsList: { id: string; title: string }[] = [];
+            const hiddenThreadIds = new Set<string>();
+            const threadsList: { id: string; title: string; members?: string[]; hiddenFromGlobalTodo?: boolean }[] = [];
+            
             threadsSnap.docs.forEach(doc => {
-                threadMap.set(doc.id, doc.data().title || "Unknown Thread");
-                threadsList.push({ id: doc.id, title: doc.data().title || "Unknown" });
+                const threadData = doc.data();
+                threadMap.set(doc.id, threadData.title || "Unknown Thread");
+                
+                if (threadData.hiddenFromGlobalTodo) {
+                    hiddenThreadIds.add(doc.id);
+                }
+
+                threadsList.push({ 
+                    id: doc.id, 
+                    title: threadData.title || "Unknown",
+                    members: threadData.members || [],
+                    hiddenFromGlobalTodo: threadData.hiddenFromGlobalTodo
+                });
             });
 
             // Process users
@@ -180,7 +193,10 @@ const getCachedDashboardData = unstable_cache(
             }
 
             // Process tasks
-            const allTasks = tasksSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Filter out tasks from hidden threads
+            const allTasks = tasksSnap.docs
+                .map(doc => ({ id: doc.id, ...doc.data() }))
+                .filter((task: any) => !hiddenThreadIds.has(task.threadId));
             
             let pendingTaskCount = 0;
             let todayDueTaskCount = 0;
@@ -261,19 +277,21 @@ const getCachedDashboardData = unstable_cache(
                 return a.dueDate - b.dueDate;
             });
 
-            // Unread messages
+            // Unread messages - Revised Logic (Check seenBy)
             let unreadMessageCount = 0;
             chatsSnap.docs.forEach(doc => {
                 const data = doc.data();
-                const unreadMap = data.unreadCounts || {};
-                const count = Number(unreadMap[userId] || 0);
-                if (count > 0) {
+                const seenBy = data.seenBy || [];
+                // If user is NOT in seenBy, it's unread
+                if (!seenBy.includes(userId)) {
                     unreadMessageCount++;
                 }
             });
 
             // Recent threads - sorted by updatedAt
+            // Filter out hidden threads
             const recentThreads = threadsSnap.docs
+                .filter(doc => !doc.data().hiddenFromGlobalTodo)
                 .map(doc => ({
                     id: doc.id,
                     title: doc.data().title,
@@ -299,7 +317,7 @@ const getCachedDashboardData = unstable_cache(
                     myTodoCount,
                     myInProgressCount,
                     myDoneCount,
-                    activeThreadCount: threadsSnap.size,
+                    activeThreadCount: threadsList.filter(t => !t.hiddenFromGlobalTodo).length,
                     unreadMessageCount,
                     attendanceUntil1645,
                     attendanceUntil1900,
@@ -333,7 +351,7 @@ const getCachedDashboardData = unstable_cache(
                     endDate: task.endDate,
                     assigneeIds: task.assigneeIds || []
                 })),
-                threads: threadsList,
+                threads: threadsList.filter(t => !t.hiddenFromGlobalTodo),
                 users: usersList
             };
         } catch (error) {
