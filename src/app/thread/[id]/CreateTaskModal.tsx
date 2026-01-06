@@ -1,7 +1,7 @@
 "use client";
 
 import { createTask } from "@/app/actions/task";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import styles from "./thread.module.css";
 import { Paperclip, Loader2, FileIcon, X, Plus } from "lucide-react";
 import { useChatUpload } from "@/app/messages/ChatUploadContext";
