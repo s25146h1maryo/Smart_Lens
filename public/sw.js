@@ -16,9 +16,27 @@ firebase.initializeApp({
 
 const messaging = firebase.messaging();
 
-// Background message handling is managed automatically by the Firebase SDK imports.
-// We relying on the default behavior to avoid duplicate notifications.
-// Custom logic can be added here if we need to modify the data-only payloads.
+// Handle background messages manually since we are using data-only payloads
+messaging.onBackgroundMessage((payload) => {
+    console.log('[SW] Background message:', payload);
+
+    // Extract data from payload.data (since we moved it there)
+    const { title, body, url, tag } = payload.data || {};
+
+    if (!title || !body) return;
+
+    const notificationOptions = {
+        body: body,
+        icon: '/icons/icon-192.png',
+        badge: '/icons/icon-192.png',
+        tag: tag || 'default',
+        data: {
+            url: url || '/dashboard'
+        }
+    };
+
+    self.registration.showNotification(title, notificationOptions);
+});
 
 const CACHE_NAME = 'smartlens-v1';
 const DASHBOARD_URL = '/dashboard';

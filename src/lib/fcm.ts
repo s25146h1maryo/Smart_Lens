@@ -72,10 +72,16 @@ export function usePushNotifications(userId?: string) {
                 console.log("Foreground message received:", payload);
                 
                 // Show notification even when app is in foreground
-                if (payload.notification) {
-                    new Notification(payload.notification.title || 'SmartLens', {
-                        body: payload.notification.body,
-                        icon: '/icons/icon-192.png'
+                // Check for notification in payload OR data (since we switched to data-only)
+                const title = payload.notification?.title || payload.data?.title;
+                const body = payload.notification?.body || payload.data?.body;
+
+                // Show notification even when app is in foreground
+                if (title && body) {
+                    new Notification(title, {
+                        body: body,
+                        icon: '/icons/icon-192.png',
+                        data: payload.data
                     });
                 }
             });

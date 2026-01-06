@@ -137,7 +137,11 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
                             </div>
                             
                             <div className={`${isMobileTaskCreatorOpen ? 'block' : 'hidden'} xl:block`}>
-                                <SidebarTaskCreator threadId={thread.id} users={users} onTaskCreated={handleTaskCreated} />
+                                <SidebarTaskCreator 
+                                    threadId={thread.id} 
+                                    users={users.filter(u => thread.members?.includes(u.id))} 
+                                    onTaskCreated={handleTaskCreated} 
+                                />
                             </div>
                             
                             <button 

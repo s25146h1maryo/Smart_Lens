@@ -62,11 +62,10 @@ export async function sendPushNotification(
     // Send via FCM Admin SDK (Multicast)
     try {
         const message = {
-            notification: {
+            // Data-only message to prevent automatic duplicate display by SDK
+            data: {
                 title,
                 body,
-            },
-            data: {
                 url: url || "/dashboard",
                 tag: tag || "default"
             },
@@ -74,10 +73,6 @@ export async function sendPushNotification(
             webpush: {
                 headers: {
                     Urgency: "high",
-                },
-                notification: {
-                    icon: "/icons/icon-192.png",
-                    badge: "/icons/icon-192.png",
                 }
             }
         };
