@@ -8,9 +8,7 @@ import { analyzeDriveImage } from "@/app/actions/ai_task";
 import { Sparkles, Paperclip, Wrench, X, File as FileIcon } from "lucide-react";
 import styles from "./thread.module.css";
 import { useChatUpload } from "@/app/messages/ChatUploadContext";
-// import { useRouter } from "next/navigation"; // Not needed for refresh anymore
 
-// Define User type based on getActiveUsers return
 interface User {
     id: string;
     name: string;
@@ -32,9 +30,9 @@ export default function SidebarTaskCreator({
     users?: User[],
     onTaskCreated: (task: any) => void 
 }) {
-    // const router = useRouter(); // For refreshing the list
+    // State Definitions
     const [title, setTitle] = useState("");
-    const [assigneeId, setAssigneeId] = useState("");
+    const [assigneeIds, setAssigneeIds] = useState<string[]>([]);
     const [priority, setPriority] = useState<'low' | 'medium' | 'high'>('medium');
     const [dateType, setDateType] = useState<'deadline' | 'period' | 'scheduled'>('deadline');
     const [isAllDay, setIsAllDay] = useState(true);
@@ -44,22 +42,21 @@ export default function SidebarTaskCreator({
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState<{ code: string, message: string } | null>(null);
     const [attachments, setAttachments] = useState<any[]>([]);
-    
-    // Upload Context
+    const [uploadingCount, setUploadingCount] = useState(0);
+
+    // Context & Refs
     const { uploadFile } = useChatUpload();
-
-    // Custom Select State
-    const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
     const assigneeRef = useRef<HTMLDivElement>(null);
-
-    // AI & File State
-    const [aiStatus, setAiStatus] = useState<'Idle' | 'Analyzing' | 'Review'>('Idle');
-    const [aiSuggestions, setAiSuggestions] = useState<SuggestedTask[]>([]);
     const aiInputRef = useRef<HTMLInputElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const [fileStats, setFileStats] = useState("");
 
-    const [uploadingCount, setUploadingCount] = useState(0);
+    // Assignee Search State
+    const [assigneeSearch, setAssigneeSearch] = useState("");
+    const [isAssigneeOpen, setIsAssigneeOpen] = useState(false);
+
+    // AI State
+    const [aiStatus, setAiStatus] = useState<'Idle' | 'Analyzing' | 'Review'>('Idle');
+    const [aiSuggestions, setAiSuggestions] = useState<SuggestedTask[]>([]);
 
     // Close select on click outside
     useEffect(() => {
@@ -72,14 +69,22 @@ export default function SidebarTaskCreator({
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
 
-    // --- AI Logic (Temporarily Disabled per User Request due to CORS) ---
-    
+    // Filter Users
+    const filteredUsers = users.filter(u => 
+        (u.nickname || u.name || "").toLowerCase().includes(assigneeSearch.toLowerCase())
+    );
+
+    const toggleAssignee = (uid: string) => {
+        setAssigneeIds(prev => 
+            prev.includes(uid) ? prev.filter(id => id !== uid) : [...prev, uid]
+        );
+    };
+
+    // --- AI Logic ---
     const uploadFileToDrive = async (file: File, threadId: string, prefix: string): Promise<any> => {
-        // 1. Get Session URL from Server
         const uploadUrl = await getUploadSession(threadId, `${prefix}${file.name}`, file.type);
         if (!uploadUrl) throw new Error("Failed to initialize upload session.");
 
-        // 2. Upload directly from Client (XHR for reliability/progress)
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open("PUT", uploadUrl);
@@ -103,10 +108,6 @@ export default function SidebarTaskCreator({
         });
     };
 
-    const handleAiClick = () => {
-        aiInputRef.current?.click();
-    };
-
     const handleAiUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -117,12 +118,7 @@ export default function SidebarTaskCreator({
 
         try {
             console.log("Starting AI Upload (Client Direct) for:", file.name);
-            
-            // Upload
             const driveFile = await uploadFileToDrive(file, threadId, "AI_Source_");
-            console.log("AI File Uploaded:", driveFile.id);
-
-            // Analyze
             const tasks = await analyzeDriveImage(driveFile.id, file.type);
             
             if (tasks.length === 0) {
@@ -133,7 +129,6 @@ export default function SidebarTaskCreator({
 
             setAiSuggestions(tasks);
             setAiStatus("Review");
-
         } catch (e: any) {
             console.error("AI Process Error:", e);
             setAiStatus("Idle");
@@ -141,39 +136,7 @@ export default function SidebarTaskCreator({
         }
     };
 
-    const handleAiApprove = async (task: SuggestedTask) => {
-        try {
-            // Assign to current user by default or leave empty? 
-            // Better to leave empty or use default logic.
-            const result = await createTask(threadId, task.title, 'todo', {
-                // description: task.description 
-            });
-            if (result.success && result.task) {
-                onTaskCreated(result.task);
-            }
-            setAiSuggestions(prev => prev.filter(t => t !== task));
-            if (aiSuggestions.length <= 1) {
-                setAiStatus("Idle");
-            }
-        } catch(e:any) {
-            setError({ code: 'CREATE_FAILED', message: e.message });
-        }
-    };
-    
-
-    const resetForm = () => {
-        setTitle("");
-        setAssigneeId("");
-        setDateType("deadline");
-        setDate1("");
-        setDate2("");
-        setIsAllDay(true);
-        setPriority("medium");
-        setAttachments([]);
-        if (fileInputRef.current) fileInputRef.current.value = "";
-        setError(null);
-    }
-    
+    // --- File Upload Logic ---
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (!files || files.length === 0) return;
@@ -184,7 +147,7 @@ export default function SidebarTaskCreator({
         fileArray.forEach(file => {
             uploadFile(
                 file,
-                { threadId }, // Context for Task Upload (Task ID not yet known, but Thread ID is)
+                { threadId }, 
                 (attachment) => {
                     setAttachments(prev => [...prev, attachment]);
                     setUploadingCount(prev => Math.max(0, prev - 1));
@@ -199,25 +162,34 @@ export default function SidebarTaskCreator({
         setAttachments(prev => prev.filter(a => a.driveFileId !== driveId && a.id !== driveId));
     };
 
-    // --- Manual Logic ---
+    const resetForm = () => {
+        setTitle("");
+        setAssigneeIds([]);
+        setAssigneeSearch("");
+        setDateType("deadline");
+        setDate1("");
+        setDate2("");
+        setIsAllDay(true);
+        setPriority("medium");
+        setAttachments([]);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+        setError(null);
+    };
+
+    // --- Manual Submit ---
     const handleManualSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSubmitting(true);
         setError(null);
 
-        // 1. Validation: Date is mandatory
+        // Validation
         if (!date1) {
             setError({ code: 'VALIDATION', message: '日付を設定してください（必須項目です）。' });
             setIsSubmitting(false);
             return;
         }
 
-        // 2. Validation: Assignee is mandatory
-        const finalAssignees = assigneeId === 'ALL' 
-            ? users.map(u => u.id) 
-            : (assigneeId ? [assigneeId] : []);
-        
-        if (finalAssignees.length === 0) {
+        if (assigneeIds.length === 0) {
             setError({ code: 'VALIDATION', message: '担当者を設定してください（必須項目です）。' });
             setIsSubmitting(false);
             return;
@@ -235,14 +207,10 @@ export default function SidebarTaskCreator({
                 if (date2) endDate = new Date(date2).getTime();
             }
 
-            /*
-            // Old Manual Upload Logic Removed
-            */
-
             const result = await createTask(threadId, title, 'todo', {
                 priority,
                 startDate, endDate, dueDate,
-                assigneeIds: finalAssignees,
+                assigneeIds: assigneeIds,
                 isAllDay,
                 attachments: attachments.map(f => ({
                     name: f.name,
@@ -257,7 +225,6 @@ export default function SidebarTaskCreator({
             } else {
                 console.log("Task Created Successfully:", result.task);
                 resetForm();
-                // Call parent callback for Optimistic Update
                 if(result.task) {
                     onTaskCreated(result.task);
                 }
@@ -271,17 +238,10 @@ export default function SidebarTaskCreator({
         }
     };
 
-    const getAssigneeLabel = () => {
-        if (!assigneeId) return "担当者を選択 (必須)";
-        if (assigneeId === 'ALL') return "全員 (All Members)";
-        const user = users.find(u => u.id === assigneeId);
-        return user ? (user.nickname || user.name || "不明なユーザー") : "選択してください";
-    };
-
     return (
         <div className="flex flex-col gap-6">
             
-            {/* AI Section (Premium Maintenance Mode) */}
+            {/* AI Section */}
             <div className="relative overflow-hidden rounded-xl border border-indigo-500/20 bg-gradient-to-br from-indigo-900/10 to-purple-900/10 p-1">
                 <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40 backdrop-blur-[2px]">
                      <div className="flex items-center gap-2 rounded-full border border-white/10 bg-zinc-900/80 px-3 py-1.5 text-xs font-medium text-zinc-400 shadow-xl">
@@ -333,49 +293,37 @@ export default function SidebarTaskCreator({
                     required
                 />
 
-                {/* Custom Assignee Select */}
-                <div className="relative" ref={assigneeRef}>
-                    <div 
-                        className={`
-                            flex w-full cursor-pointer items-center justify-between rounded-xl border border-white/5 bg-zinc-900/50 px-4 py-3 transition-all hover:bg-zinc-900 hover:border-white/10
-                            ${isAssigneeOpen ? 'ring-2 ring-indigo-500/20 border-indigo-500/50' : ''}
-                        `}
-                        onClick={() => setIsAssigneeOpen(!isAssigneeOpen)}
-                    >
-                        <span className={`text-sm ${assigneeId ? 'text-white' : 'text-zinc-500'}`}>
-                            {getAssigneeLabel()}
-                        </span>
-                        <span className="text-xs text-zinc-600">▼</span>
-                    </div>
-                    
-                    {isAssigneeOpen && (
-                        <div className="absolute left-0 right-0 top-full z-50 mt-2 max-h-60 overflow-y-auto rounded-xl border border-white/10 bg-black/90 p-1 shadow-2xl backdrop-blur-xl">
-                            <div 
-                                className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-white/10"
-                                onClick={() => { setAssigneeId('ALL'); setIsAssigneeOpen(false); }}
-                            >
-                                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-600 text-[10px] font-bold text-white">ALL</span>
-                                <span className="text-sm text-zinc-300">全員 (全メンバー)</span>
-                            </div>
-                            {users.filter(u => 
-                                u.nickname !== "Unknown" && 
-                                u.name !== "Unknown" &&
-                                (u.nickname || u.name) && 
-                                (u.nickname || u.name).trim() !== ""
-                            ).map(user => (
+                {/* Multi-Select Assignee UI */}
+                <div>
+                     <label className="text-xs font-medium text-zinc-500 mb-1 block ml-1">担当者 ({assigneeIds.length})</label>
+                     <div className="border border-white/5 rounded-xl bg-zinc-900/50 overflow-hidden flex flex-col max-h-[200px]">
+                        <input 
+                            className="bg-zinc-900/50 border-b border-white/5 p-2 text-xs text-white outline-none w-full placeholder-zinc-600"
+                            placeholder="名前で検索..."
+                            value={assigneeSearch}
+                            onChange={e => setAssigneeSearch(e.target.value)}
+                        />
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-1 space-y-1">
+                            {filteredUsers.map(u => (
                                 <div 
-                                    key={user.id} 
-                                    className="flex cursor-pointer items-center gap-3 rounded-lg p-2 hover:bg-white/10"
-                                    onClick={() => { setAssigneeId(user.id); setIsAssigneeOpen(false); }}
+                                    key={u.id} 
+                                    onClick={() => toggleAssignee(u.id)}
+                                    className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${assigneeIds.includes(u.id) ? 'bg-indigo-500/20 border border-indigo-500/30' : 'hover:bg-white/5 border border-transparent'}`}
                                 >
-                                    <span className="flex h-6 w-6 items-center justify-center rounded-full bg-zinc-800 text-[10px] font-bold text-zinc-400">
-                                        {(user.nickname?.[0] || user.name?.[0] || "U").toUpperCase()}
-                                    </span>
-                                    <span className="text-sm text-zinc-300">{user.nickname || user.name}</span>
+                                    <div className="flex items-center gap-2">
+                                        <div className="min-w-5 h-5 rounded-full bg-zinc-700 flex items-center justify-center text-[10px] text-zinc-300">
+                                            {(u.nickname?.[0] || u.name?.[0] || "?").toUpperCase()}
+                                        </div>
+                                        <span className={`text-xs truncate ${assigneeIds.includes(u.id) ? 'text-indigo-200 font-bold' : 'text-zinc-300'}`}>
+                                            {u.nickname || u.name}
+                                        </span>
+                                    </div>
+                                    {assigneeIds.includes(u.id) && <div className="w-1.5 h-1.5 rounded-full bg-indigo-500"></div>}
                                 </div>
                             ))}
+                             {filteredUsers.length === 0 && <div className="text-center text-[10px] text-zinc-600 py-2">ユーザーが見つかりません</div>}
                         </div>
-                    )}
+                    </div>
                 </div>
 
                 {/* Custom Date Type Tabs */}
@@ -411,7 +359,7 @@ export default function SidebarTaskCreator({
                            <input 
                                 type={isAllDay ? "date" : "datetime-local"} 
                                 required 
-                                className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500" 
+                                className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 [color-scheme:dark]" 
                                 value={date1} 
                                 onChange={e => setDate1(e.target.value)} 
                            />
@@ -420,7 +368,7 @@ export default function SidebarTaskCreator({
                            <input 
                                 type={isAllDay ? "date" : "datetime-local"} 
                                 required 
-                                className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500" 
+                                className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 [color-scheme:dark]" 
                                 value={date1} 
                                 onChange={e => setDate1(e.target.value)} 
                            />
@@ -432,7 +380,7 @@ export default function SidebarTaskCreator({
                                     <input 
                                         type={isAllDay ? "date" : "datetime-local"} 
                                         required 
-                                        className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500" 
+                                        className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 [color-scheme:dark]" 
                                         value={date1} 
                                         onChange={e => setDate1(e.target.value)} 
                                     />
@@ -441,7 +389,7 @@ export default function SidebarTaskCreator({
                                     <span className="ml-1 text-[10px] text-zinc-500">終了{isAllDay ? '日' : '日時'}</span>
                                     <input 
                                         type={isAllDay ? "date" : "datetime-local"} 
-                                        className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500" 
+                                        className="w-full rounded-lg border border-white/5 bg-zinc-900/50 px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500 [color-scheme:dark]" 
                                         value={date2} 
                                         onChange={e => setDate2(e.target.value)} 
                                     />

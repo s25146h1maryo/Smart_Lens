@@ -96,7 +96,7 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
                     </Link>
                     {/* Member Links (Scrollable) */}
                     <div className="flex items-center gap-1 overflow-x-auto scrollbar-hide w-full">
-                        {users.map(user => (
+                        {users.filter(u => thread.members?.includes(u.id)).map(user => (
                             <MemberDmLink key={user.id} userId={user.id} name={user.nickname || user.name} />
                         ))}
                     </div>

@@ -297,9 +297,9 @@ export default function EditTaskModal({ task, isOpen, onClose, users, onTaskUpda
                                 </div>
                                 <div className="flex-1 overflow-y-auto custom-scrollbar p-2 space-y-1">
                                     {filteredUsers.length > 0 ? filteredUsers.map(u => {
-                                        const isSelected = assigneeIds.includes(u.uid);
+                                        const isSelected = assigneeIds.includes(u.id);
                                         return (
-                                            <button key={u.uid} onClick={() => toggleAssignee(u.uid)} className={`w-full flex items-center justify-between p-2 rounded-lg transition-all ${isSelected ? 'bg-indigo-500/20 border border-indigo-500/30' : 'hover:bg-white/5 border border-transparent'}`}>
+                                            <button key={u.id} onClick={() => toggleAssignee(u.id)} className={`w-full flex items-center justify-between p-2 rounded-lg transition-all ${isSelected ? 'bg-indigo-500/20 border border-indigo-500/30' : 'hover:bg-white/5 border border-transparent'}`}>
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-6 h-6 rounded-full bg-zinc-800 flex items-center justify-center text-[10px] text-zinc-300 font-bold border border-white/5">{(u.nickname?.[0] || u.name?.[0] || "?").toUpperCase()}</div>
                                                     <span className={`text-xs font-medium ${isSelected ? 'text-indigo-200' : 'text-zinc-300'}`}>{u.nickname || u.name}</span>
