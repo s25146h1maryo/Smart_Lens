@@ -78,6 +78,11 @@ export function usePushNotifications(userId?: string) {
 
                 // Show notification even when app is in foreground
                 if (title && body) {
+                    // Add vibration for better awareness
+                    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                        navigator.vibrate([200, 100, 200]);
+                    }
+
                     new Notification(title, {
                         body: body,
                         icon: '/icons/icon-192.png',

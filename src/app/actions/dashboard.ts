@@ -266,7 +266,8 @@ const getCachedDashboardData = unstable_cache(
             chatsSnap.docs.forEach(doc => {
                 const data = doc.data();
                 const unreadMap = data.unreadCounts || {};
-                if (unreadMap[userId] && unreadMap[userId] > 0) {
+                const count = Number(unreadMap[userId] || 0);
+                if (count > 0) {
                     unreadMessageCount++;
                 }
             });

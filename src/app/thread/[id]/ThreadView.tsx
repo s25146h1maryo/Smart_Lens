@@ -178,7 +178,7 @@ export default function ThreadView({ thread, initialTasks, users, currentUserRol
                                 {/* Filter controls? */}
                             </div>
 
-                            <TaskBoard tasks={activeTasks} setTasks={setTasks} threadId={thread.id} users={users} />
+                            <TaskBoard tasks={activeTasks} setTasks={setTasks} threadId={thread.id} users={users.filter(u => thread.members?.includes(u.id))} />
                          </div>
                     </div>
                 </section>
