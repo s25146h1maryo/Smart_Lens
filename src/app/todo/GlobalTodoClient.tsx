@@ -631,12 +631,7 @@ export default function GlobalTodoClient({
                             <Filter size={18} />
                         </button>
                         
-                        <button
-                            onClick={() => setShowAddTask(true)}
-                            className="bg-white text-black p-2 rounded-full shadow-lg hover:bg-zinc-200 transition-all"
-                        >
-                            <Plus size={20} strokeWidth={3} />
-                        </button>
+
                     </UnifiedHeader>
 
                     {/* Filter Bar (Hidden on Mobile V2, shown on Desktop) */}

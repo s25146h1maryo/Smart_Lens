@@ -267,7 +267,7 @@ const getCachedDashboardData = unstable_cache(
                 const data = doc.data();
                 const unreadMap = data.unreadCounts || {};
                 if (unreadMap[userId] && unreadMap[userId] > 0) {
-                    unreadMessageCount += unreadMap[userId];
+                    unreadMessageCount++;
                 }
             });
 
