@@ -20,7 +20,7 @@ export default function EditTaskModal({ task, isOpen, onClose, users, onTaskUpda
     const [description, setDescription] = useState(task.description || "");
     const [priority, setPriority] = useState<Task['priority']>(task.priority);
     const [status, setStatus] = useState<Task['status']>(task.status);
-    const [assigneeIds, setAssigneeIds] = useState<string[]>(task.assigneeIds || []);
+    const [assigneeIds, setAssigneeIds] = useState<string[]>(Array.from(new Set(task.assigneeIds || [])));
     const [attachments, setAttachments] = useState<Task['attachments']>(task.attachments || []);
     
     // Upload Context
@@ -49,7 +49,7 @@ export default function EditTaskModal({ task, isOpen, onClose, users, onTaskUpda
             setDescription(task.description || "");
             setPriority(task.priority);
             setStatus(task.status);
-            setAssigneeIds(task.assigneeIds || []);
+            setAssigneeIds(Array.from(new Set(task.assigneeIds || [])));
             setAttachments(task.attachments || []);
             setIsAllDay(task.isAllDay ?? true);
 
